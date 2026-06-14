@@ -700,7 +700,8 @@
             if (item.activePromos.length > 0) {
                 item.activePromos.forEach(p => {
                     mekanismeLabels.push(p.mekanisme);
-                    if (!p.mekanisme.toUpperCase().startsWith("SETIAP PEMBELIAN")) {
+                    const meksUpper = p.mekanisme.toUpperCase();
+                    if (!meksUpper.startsWith("SETIAP PEMBELIAN") && !meksUpper.startsWith("BELI ITEM PSPB")) {
                         totalPotongan += p.potongan;
                         displayPromo = true;
                     }
