@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCAN ITT PJR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <style>
+        :root {
+            --primary: #0064D2;
+            --primary-dark: #004CA0;
+            --secondary: #FFC220;
+            --bg: #F7F9FC;
+            --card-bg: #FFFFFF;
+            --text: #1A1D23;
+            --text-light: #6B7280;
+            --border: #E5E7EB;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            padding: 24px;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
+        h2 {
+            font-weight: 700;
+            font-size: 28px;
+            margin-bottom: 24px;
+            color: var(--text);
+            text-align: center;
+        }
+.search-container {
+            margin: 0 auto 24px;
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,100,210,0.08);
+            border: 1px solid var(--border);
+            max-width: 900px;
+        }
+.filter-group {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+.filter-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+.filter-item label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+        }
+.shelf-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        input[type="text"], select, textarea {
+            padding: 12px 14px;
+            width: 100%;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            transition: all 0.2s;
+            resize: vertical;
+        }
+        textarea {
+            min-height: 60px;
+            max-height: 120px;
+        }
+        input[type="text"]:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0,100,210,0.1);
+        }
+.action-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 14px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+        button.btn-reset {
+            background: #E5E7EB;
+            color: var(--text);
+        }
+        button.btn-reset:hover {
+            background: #D1D5DB;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+.message {
+            margin: 20px 0;
+            font-size: 14px;
+            color: var(--text-light);
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        /* Modal Popup */
+.modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+.modal-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+.modal-content {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            border-top: 4px solid var(--secondary);
+            transform: scale(0.9);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+.modal-content.compact {
+            max-height: 75vh;
+        }
+.modal-overlay.show.modal-content {
+            transform: scale(1);
+        }
+.modal-header {
+            padding: 16px 24px 0;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            flex-shrink: 0;
+        }
+.modal-close {
+            background: #F3F4F6;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--text-light);
+            padding: 0;
+        }
+.modal-close:hover {
+            background: #E5E7EB;
+            transform: none;
+        }
+.card-body {
+            padding: 0 24px 24px;
+            flex: 1;
+            opacity: 0;
+            transform: translateX(20px);
+            transition: all 0.3s ease;
+            text-align: center;
+            overflow-y: auto;
+        }
+.card-body.animate {
+            opacity: 1;
+            transform: translateX(0);
+        }
+.product-image {
+            width: 120px;
+            height: 120px;
+            object-fit: contain;
+            margin: 0 auto 12px;
+            border-radius: 8px;
+            background: #F9FAFB;
+            padding: 8px;
+        }
+.plumd-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+.card-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 16px;
+            min-height: 48px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+.barcode-container {
+            margin: 16px 0;
+            padding: 12px;
+            background: #F9FAFB;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+.barcode-container svg {
+            max-width: 100%;
+        }
+.barcode-text {
+            font-size: 12px;
+            color: var(--text-light);
+            font-family: monospace;
+        }
+.barcode-list {
+            display: none;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--border);
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+.barcode-list.show {
+            display: block;
+        }
+.barcode-item {
+            margin: 8px 0;
+            padding: 8px;
+            background: white;
+            border-radius: 6px;
+        }
+.show-all-barcodes {
+            color: var(--primary);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+.show-all-barcodes:hover {
+            text-decoration: underline;
+        }
+.card-detail {
+            border-top: 1px dashed var(--border);
+            padding-top: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+.detail-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+.detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+.detail-item.full {
+            grid-column: span 2;
+        }
+.detail-label {
+            font-size: 11px;
+            color: var(--text-light);
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+.detail-value {
+            color: var(--text);
+            font-weight: 600;
+            font-size: 14px;
+            min-height: 22px;
+        }
+.pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 16px;
+            padding: 20px 24px;
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+.page-info {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+            min-width: 120px;
+            text-align: center;
+        }
+.btn-nav {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+    <h2>SCAN ITT PJR</h2>
+    
+    <div class="search-container">
+        <div class="filter-group">
+            <div class="filter-item">
+                <label for="keyword">Cari Produk</label>
+                <textarea id="keyword" placeholder="Ketik Plu/Barcode disini ... Pisahkan dengan spasi atau enter ..." rows="3"></textarea>
+            </div>
+            <div class="filter-item">
+                <label for="filterNamaRak">Pilih Modis</label>
+                <select id="filterNamaRak">
+                    <option value="">-- Semua Modis --</option>
+                </select>
+            </div>
+            <div class="filter-item">
+                <div class="shelf-row">
+                    <div class="filter-item">
+                        <label for="filterDariShelf">Dari Shelfing</label>
+                        <select id="filterDariShelf">
+                            <option value="">-- Semua --</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label for="filterSampaiShelf">Sampai Shelfing</label>
+                        <select id="filterSampaiShelf">
+                            <option value="">-- Semua --</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="action-group">
+            <button onclick="searchData()">Cari</button>
+            <button class="btn-reset" onclick="resetSearch()">Reset</button>
+        </div>
+    </div>
+
+    <div id="statusMessage" class="message"></div>
+
+    <!-- Modal Popup -->
+    <div id="modalOverlay" class="modal-overlay">
+        <div class="modal-content" id="modalContent">
+            <div class="modal-header">
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div id="modalBody" class="card-body"></div>
+            <div class="pagination">
+                <button id="prevBtn" class="btn-nav" onclick="changePage(-1)">Prev</button>
+                <span id="pageInfo" class="page-info"></span>
+                <button id="nextBtn" class="btn-nav" onclick="changePage(1)">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const prodmastUrl = 'https://raw.githubusercontent.com/IndoMarc/database/refs/heads/main/UGD_PRODMAST.CSV';
+        const barcodeUrl = 'https://raw.githubusercontent.com/IndoMarc/database/refs/heads/main/UGD_BARCODE.CSV';
+        const rakUrl = 'https://raw.githubusercontent.com/IndoMarc/database/refs/heads/main/UGD_RAK.CSV';
+        
+        let csvDataLines = [];
+        let barcodeMap = new Map();
+        let rakMap = new Map();
+        let isDataLoaded = false;
+        
+        let allResults = [];
+        let currentPage = 0;
+
+        async function loadAllData() {
+            try {
+                document.getElementById('statusMessage').textContent = 'Mengunduh data barcode...';
+                const barcodeResponse = await fetch(barcodeUrl);
+                if (!barcodeResponse.ok) throw new Error('Gagal mengambil data Barcode');
+                const barcodeText = await barcodeResponse.text();
+                parseBarcodeData(barcodeText);
+
+                document.getElementById('statusMessage').textContent = 'Mengunduh data lokasi rak...';
+                const rakResponse = await fetch(rakUrl);
+                if (!rakResponse.ok) throw new Error('Gagal mengambil data Rak');
+                const rakText = await rakResponse.text();
+                parseRakData(rakText);
+
+                document.getElementById('statusMessage').textContent = 'Mengunduh data produk...';
+                const prodmastResponse = await fetch(prodmastUrl);
+                if (!prodmastResponse.ok) throw new Error('Gagal mengambil data Produk');
+                const prodmastText = await prodmastResponse.text();
+                csvDataLines = prodmastText.split(/\r?\n/);
+
+                isDataLoaded = true;
+                document.getElementById('statusMessage').textContent = 'Berhasil memuat data ...';
+            } catch (error) {
+                document.getElementById('statusMessage').textContent = 'Error memuat data: ' + error.message;
+            }
+        }
+
+        function parseBarcodeData(text) {
+            const lines = text.split(/\r?\n/);
+            if (lines.length === 0) return;
+            const headers = lines[0].split('|');
+            const indexPlu = headers.indexOf('PLU');
+            const indexBarcd = headers.indexOf('BARCD');
+            if (indexPlu === -1 || indexBarcd === -1) return;
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                const columns = line.split('|');
+                const plu = columns[indexPlu]? columns[indexPlu].trim() : '';
+                const barcd = columns[indexBarcd]? columns[indexBarcd].trim() : '';
+                if (plu && barcd) {
+                    if (!barcodeMap.has(plu)) barcodeMap.set(plu, []);
+                    barcodeMap.get(plu).push(barcd);
+                }
+            }
+        }
+
+        function parseRakData(text) {
+            const lines = text.split(/\r?\n/);
+            if (lines.length === 0) return;
+            const headers = lines[0].split('|');
+            const indexPlumd = headers.indexOf('PLUMD');
+            const indexNamaRak = headers.indexOf('NAMA_RAK');
+            const indexNoShelf = headers.indexOf('NOSHELF');
+            const indexKiriKanan = headers.indexOf('KIRIKANAN');
+            if (indexPlumd === -1) return;
+            const setNamaRak = new Set();
+            const setNoShelf = new Set();
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                const columns = line.split('|');
+                const plumd = columns[indexPlumd]? columns[indexPlumd].trim() : '';
+                const namaRak = indexNamaRak!== -1 && columns[indexNamaRak]? columns[indexNamaRak].trim() : '-';
+                const noShelf = indexNoShelf!== -1 && columns[indexNoShelf]? columns[indexNoShelf].trim() : '-';
+                const kiriKanan = indexKiriKanan!== -1 && columns[indexKiriKanan]? columns[indexKiriKanan].trim() : '-';
+                if (namaRak && namaRak!== '-') setNamaRak.add(namaRak);
+                if (noShelf && noShelf!== '-') setNoShelf.add(noShelf);
+                if (plumd) {
+                    if (!rakMap.has(plumd)) rakMap.set(plumd, []);
+                    rakMap.get(plumd).push({ namaRak, noShelf, kiriKanan });
+                }
+            }
+            populateDropdowns(setNamaRak, setNoShelf);
+        }
+
+        function populateDropdowns(setNamaRak, setNoShelf) {
+            const arrNamaRak = Array.from(setNamaRak).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+            const arrNoShelf = Array.from(setNoShelf).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+            const selectNamaRak = document.getElementById('filterNamaRak');
+            const selectDariShelf = document.getElementById('filterDariShelf');
+            const selectSampaiShelf = document.getElementById('filterSampaiShelf');
+            arrNamaRak.forEach(rak => {
+                const opt = document.createElement('option');
+                opt.value = rak;
+                opt.textContent = rak;
+                selectNamaRak.appendChild(opt);
+            });
+            arrNoShelf.forEach(shelf => {
+                const optDari = document.createElement('option');
+                optDari.value = shelf;
+                optDari.textContent = shelf;
+                selectDariShelf.appendChild(optDari);
+                const optSampai = document.createElement('option');
+                optSampai.value = shelf;
+                optSampai.textContent = shelf;
+                selectSampaiShelf.appendChild(optSampai);
+            });
+        }
+
+        async function searchData() {
+            const keywordRaw = document.getElementById('keyword').value.trim();
+            const searchTerms = keywordRaw.split(/[\s\n]+/).filter(k => k.length > 0).map(k => k.toLowerCase());
+            const filterNamaRak = document.getElementById('filterNamaRak').value;
+            const filterDariShelf = document.getElementById('filterDariShelf').value;
+            const filterSampaiShelf = document.getElementById('filterSampaiShelf').value;
+            const statusMessage = document.getElementById('statusMessage');
+            
+            closeModal();
+            
+            if (!isDataLoaded) {
+                statusMessage.textContent = 'Sedang memuat data, silakan tunggu...';
+                await loadAllData();
+                if (!isDataLoaded) return;
+            }
+            statusMessage.textContent = 'Mencari data...';
+            const headers = csvDataLines[0].split('|');
+            const indexPlumd = headers.indexOf('PLUMD');
+            const indexDesc2 = headers.indexOf('DESC2');
+            if (indexPlumd === -1 || indexDesc2 === -1) {
+                statusMessage.textContent = 'Kolom PLUMD atau DESC2 tidak ditemukan.';
+                return;
+            }
+            
+            allResults = [];
+            for (let i = 1; i < csvDataLines.length; i++) {
+                const line = csvDataLines[i].trim();
+                if (!line) continue;
+                const columns = line.split('|');
+                const plumd = columns[indexPlumd]? columns[indexPlumd].trim() : '';
+                const desc2 = columns[indexDesc2]? columns[indexDesc2].trim() : '';
+                const barcodes = barcodeMap.get(plumd) || [];
+                
+                // Cek PLUMD atau BARCD cocok dengan search terms
+                let matchSearch = searchTerms.length === 0;
+                if (searchTerms.length > 0) {
+                    matchSearch = searchTerms.some(term => 
+                        plumd.toLowerCase() === term || 
+                        barcodes.some(bc => bc.toLowerCase() === term)
+                    );
+                }
+                
+                if (matchSearch) {
+                    const rakList = rakMap.get(plumd) || [];
+                    if (rakList.length > 0) {
+                        rakList.forEach(rakInfo => {
+                            if (filterNamaRak && rakInfo.namaRak!== filterNamaRak) return;
+                            if (filterDariShelf && rakInfo.noShelf.localeCompare(filterDariShelf, undefined, { numeric: true }) < 0) return;
+                            if (filterSampaiShelf && rakInfo.noShelf.localeCompare(filterSampaiShelf, undefined, { numeric: true }) > 0) return;
+                            allResults.push({ 
+                                plumd, 
+                                barcodes, 
+                                desc2, 
+                                namaRak: rakInfo.namaRak, 
+                                noShelf: rakInfo.noShelf, 
+                                kiriKanan: rakInfo.kiriKanan 
+                            });
+                        });
+                    } else {
+                        if (!filterNamaRak &&!filterDariShelf &&!filterSampaiShelf) {
+                            allResults.push({ 
+                                plumd, 
+                                barcodes, 
+                                desc2, 
+                                namaRak: '-', 
+                                noShelf: '-', 
+                                kiriKanan: '-' 
+                            });
+                        }
+                    }
+                }
+            }
+            
+            allResults.sort((a, b) => {
+                const compareRak = a.namaRak.localeCompare(b.namaRak, undefined, { numeric: true, sensitivity: 'base' });
+                if (compareRak!== 0) return compareRak;
+                const compareShelf = a.noShelf.localeCompare(b.noShelf, undefined, { numeric: true, sensitivity: 'base' });
+                if (compareShelf!== 0) return compareShelf;
+                return a.kiriKanan.localeCompare(b.kiriKanan, undefined, { numeric: true, sensitivity: 'base' });
+            });
+
+            if (allResults.length > 0) {
+                currentPage = 0;
+                renderPage(true);
+                openModal();
+                statusMessage.textContent = `Ditemukan ${allResults.length} data.`;
+            } else {
+                statusMessage.textContent = 'Data tidak ditemukan.';
+            }
+        }
+
+        function renderPage(isInitial = false) {
+            const modalBody = document.getElementById('modalBody');
+            if (allResults.length === 0) return;
+            
+            if (!isInitial) {
+                modalBody.classList.remove('animate');
+                setTimeout(() => {
+                    updateCardContent();
+                    modalBody.classList.add('animate');
+                }, 150);
+            } else {
+                updateCardContent();
+                setTimeout(() => modalBody.classList.add('animate'), 50);
+            }
+            
+            document.getElementById('pageInfo').textContent = `${currentPage + 1} dari ${allResults.length}`;
+            document.getElementById('prevBtn').disabled = currentPage === 0;
+            document.getElementById('nextBtn').disabled = currentPage === allResults.length - 1;
+        }
+
+        function updateCardContent() {
+            const data = allResults[currentPage];
+            const barcodeId = `barcode-${currentPage}`;
+            const mainBarcode = data.barcodes.length > 0? data.barcodes[0] : '-';
+            const hasMultipleBarcodes = data.barcodes.length > 1;
+            const modalContent = document.getElementById('modalContent');
+            const imageUrl = `https://cdn-klik.klikindomaret.com/klik-catalog/product/${data.plumd}_1.jpg`;
+            
+            let barcodeHTML = `
+                <div class="barcode-container">
+                    <svg id="${barcodeId}"></svg>
+                    <div class="barcode-text">${mainBarcode}</div>
+            `;
+            
+            if (hasMultipleBarcodes) {
+                barcodeHTML += `<a class="show-all-barcodes" onclick="toggleBarcodeList(${currentPage})">Tampilkan semua barcode (${data.barcodes.length})</a>`;
+                barcodeHTML += `<div class="barcode-list" id="barcodeList-${currentPage}">`;
+                data.barcodes.forEach((bc, idx) => {
+                    barcodeHTML += `
+                        <div class="barcode-item">
+                            <svg id="${barcodeId}-${idx}"></svg>
+                            <div class="barcode-text">${bc}</div>
+                        </div>
+                    `;
+                });
+                barcodeHTML += `</div>`;
+            }
+            barcodeHTML += `</div>`;
+            
+            document.getElementById('modalBody').innerHTML = `
+                <img src="${imageUrl}" referrerpolicy="no-referrer" class="product-image" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22%3E%3Crect width=%22120%22 height=%22120%22 fill=%22%23F3F4F6%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-family=%22Inter%22 font-size=%2212%22 fill=%22%239CA3AF%22%3ENo Image%3C/text%3E%3C/svg%3E'">
+                <div class="plumd-value">${data.plumd}</div>
+                <h3 class="card-title">${data.desc2}</h3>
+                ${barcodeHTML}
+                <div class="card-detail">
+                    <div class="detail-item full">
+                        <span class="detail-label">Modis</span>
+                        <span class="detail-value">${data.namaRak}</span>
+                    </div>
+                    <div class="detail-row">
+                        <div class="detail-item">
+                            <span class="detail-label">Shelfing</span>
+                            <span class="detail-value">${data.noShelf}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Baris</span>
+                            <span class="detail-value">${data.kiriKanan}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Generate barcode utama
+            if (mainBarcode!== '-') {
+                try {
+                    JsBarcode(`#${barcodeId}`, mainBarcode, {
+                        format: "CODE128",
+                        width: 2,
+                        height: 50,
+                        displayValue: false,
+                        margin: 0
+                    });
+                } catch(e) {
+                    document.getElementById(barcodeId).outerHTML = '<div style="color:#999;font-size:12px;">Barcode tidak valid</div>';
+                }
+            }
+            
+            // Generate semua barcode kalau ada
+            if (hasMultipleBarcodes) {
+                data.barcodes.forEach((bc, idx) => {
+                    try {
+                        JsBarcode(`#${barcodeId}-${idx}`, bc, {
+                            format: "CODE128",
+                            width: 2,
+                            height: 40,
+                            displayValue: false,
+                            margin: 0
+                        });
+                    } catch(e) {
+                        document.getElementById(`${barcodeId}-${idx}`).outerHTML = '<div style="color:#999;font-size:11px;">Invalid</div>';
+                    }
+                });
+            }
+        }
+
+        function toggleBarcodeList(pageIdx) {
+            const list = document.getElementById(`barcodeList-${pageIdx}`);
+            const modalContent = document.getElementById('modalContent');
+            list.classList.toggle('show');
+            modalContent.classList.toggle('compact');
+        }
+
+        function changePage(direction) {
+            const newPage = currentPage + direction;
+            if (newPage >= 0 && newPage < allResults.length) {
+                currentPage = newPage;
+                renderPage();
+            }
+        }
+
+        function openModal() {
+            document.getElementById('modalOverlay').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+            document.getElementById('modalBody').classList.remove('animate');
+            document.getElementById('modalContent').classList.remove('compact');
+        }
+
+        function resetSearch() {
+            document.getElementById('keyword').value = '';
+            document.getElementById('filterNamaRak').value = '';
+            document.getElementById('filterDariShelf').value = '';
+            document.getElementById('filterSampaiShelf').value = '';
+            closeModal();
+            allResults = [];
+            currentPage = 0;
+            if (isDataLoaded) {
+                document.getElementById('statusMessage').textContent = 'Berhasil memuat data ...';
+            } else {
+                document.getElementById('statusMessage').textContent = '';
+            }
+        }
+
+        document.getElementById('modalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        loadAllData();
+    </script>
+
+</body>
+</html>

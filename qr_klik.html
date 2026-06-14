@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>QRCODE KLIK</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px 20px;
+            background-color: #f4f4f9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 28px;
+        }
+        .container {
+            background: white;
+            padding: 35px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+        .file-input-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .file-input-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #555;
+        }
+        input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px dashed #bbb;
+            border-radius: 4px;
+            background-color: #fafafa;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            cursor: pointer;
+        }
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 12px;
+            margin-bottom: 25px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: vertical;
+            box-sizing: border-box;
+            font-size: 16px;
+            font-family: 'Inter', sans-serif;
+        }
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+        button {
+            padding: 12px 30px;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            font-family: 'Inter', sans-serif;
+        }
+        .btn-generate {
+            background-color: #007bff;
+        }
+        .btn-generate:hover {
+            background-color: #0056b3;
+        }
+        .btn-reset {
+            background-color: #dc3545;
+        }
+        .btn-reset:hover {
+            background-color: #bd2130;
+        }
+        .note-container {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            padding: 15px 20px;
+            border-radius: 8px;
+            max-width: 600px;
+            width: 100%;
+            box-sizing: border-box;
+            font-size: 12px;
+            line-height: 1.5;
+            text-align: justify;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 280px;
+            position: relative;
+            transform: scale(0.7);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.show .modal-content {
+            transform: scale(1);
+        }
+        #qrcode {
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        #qrcode.fade-in {
+            opacity: 1;
+            transform: scale(1);
+        }
+        #qrcode.fade-out {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        .qr-label {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #333;
+            word-break: break-all;
+            max-width: 100%;
+            font-weight: 500;
+            line-height: 1.4;
+            min-height: 24px;
+            transition: opacity 0.2s ease;
+        }
+        .nav-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 25px;
+            width: 100%;
+            gap: 10px;
+        }
+        .btn-nav {
+            padding: 8px 16px;
+            background-color: #6c757d;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+        .btn-nav:hover {
+            background-color: #5a6268;
+        }
+        .counter {
+            font-size: 13px;
+            color: #777;
+            white-space: nowrap;
+            flex-grow: 1;
+            text-align: center;
+        }
+        .btn-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #aaa;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+        }
+        .btn-close:hover {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+
+<h2>QRCODE KLIK IDM</h2>
+
+<div class="container">
+    <div class="file-input-group">
+        <label for="file-input">Input file .txt untuk buat QRCode :</label>
+        <input type="file" id="file-input" accept=".txt" onchange="handleFileUpload(this)">
+    </div>
+    <textarea id="text-input" placeholder="Ketik PLU/Barcode disini , atau input file .txt di atas ..."></textarea>
+    <div class="button-group">
+        <button class="btn-generate" onclick="generateBulkQR()">Buat QRCode</button>
+        <button class="btn-reset" onclick="resetForm()">Reset</button>
+    </div>
+</div>
+
+<div class="note-container">
+    <strong>Note :</strong>  Untuk membuat QRCode contoh air aqua galon qty 2 ( PLU:QTY ) jadi 10036631:2 , Kalau qty nya hanya 1 berarti yg di ketik hanya PLU nya saja ..
+</div>
+
+<div class="modal-overlay" id="qrModal">
+    <div class="modal-content">
+        <button class="btn-close" onclick="closeModal()">&times;</button>
+        <div id="qrcode" class="fade-in"></div>
+        <div class="qr-label" id="qrLabel"></div>
+        <div class="nav-group">
+            <button class="btn-nav" onclick="prevQR()">Prev</button>
+            <div class="counter" id="qrCounter"></div>
+            <button class="btn-nav" onclick="nextQR()">Next</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let items = [];
+    let currentIndex = 0;
+    let qrcodeObj = null;
+
+    function handleFileUpload(input) {
+        let file = input.files[0];
+        if (!file) return;
+
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById("text-input").value = e.target.result;
+        };
+        reader.readAsText(file);
+    }
+
+    function formatText(text) {
+        if (text.includes(':')) {
+            let parts = text.split(':');
+            let before = parts[0];
+            let after = parts[1];
+            
+            let paddedAfter = after.padStart(4, '0');
+            
+            return 'B' + before + paddedAfter;
+        }
+        return text;
+    }
+
+    function generateBulkQR() {
+        let input = document.getElementById("text-input").value;
+        
+        if (input.trim() === "") {
+            alert("Silakan masukkan teks atau upload file terlebih dahulu!");
+            return;
+        }
+
+        items = input.split(/[\s\n,]+/).filter(item => item.trim() !== "");
+
+        if (items.length === 0) {
+            alert("Silakan masukkan teks atau upload file terlebih dahulu!");
+            return;
+        }
+
+        currentIndex = 0;
+        showModal();
+        renderCurrentQR();
+    }
+
+    function renderCurrentQR() {
+        let rawItem = items[currentIndex];
+        let processedItem = formatText(rawItem);
+        
+        let qrContainer = document.getElementById("qrcode");
+        let qrLabel = document.getElementById("qrLabel");
+        
+        qrContainer.classList.remove("fade-in");
+        qrContainer.classList.add("fade-out");
+        qrLabel.style.opacity = 0;
+
+        setTimeout(() => {
+            qrContainer.innerHTML = "";
+            qrLabel.innerText = processedItem;
+            document.getElementById("qrCounter").innerText = (currentIndex + 1) + " dari " + items.length;
+
+            qrcodeObj = new QRCode(qrContainer, {
+                text: processedItem,
+                width: 200,
+                height: 200
+            });
+
+            qrContainer.classList.remove("fade-out");
+            qrContainer.classList.add("fade-in");
+            qrLabel.style.opacity = 1;
+        }, 150);
+    }
+
+    function nextQR() {
+        if (currentIndex < items.length - 1) {
+            currentIndex++;
+            renderCurrentQR();
+        } else {
+            alert("Ini QRCode terakhir ...");
+        }
+    }
+
+    function prevQR() {
+        if (currentIndex > 0) {
+            currentIndex--;
+            renderCurrentQR();
+        } else {
+            alert("Ini QRCode pertama ...");
+        }
+    }
+
+    function showModal() {
+        let modal = document.getElementById("qrModal");
+        modal.style.display = "flex";
+        setTimeout(() => {
+            modal.classList.add("show");
+        }, 10);
+    }
+
+    function closeModal() {
+        let modal = document.getElementById("qrModal");
+        modal.classList.remove("show");
+        setTimeout(() => {
+            modal.style.display = "none";
+        }, 300);
+    }
+
+    document.getElementById("qrModal").addEventListener("click", function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+
+    function resetForm() {
+        document.getElementById("text-input").value = "";
+        document.getElementById("file-input").value = "";
+        closeModal();
+        items = [];
+        currentIndex = 0;
+    }
+</script>
+
+</body>
+</html>
