@@ -15,21 +15,46 @@
             background-color: #f0f2f5;
             margin: 0;
             color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+        .wrapper {
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .main-container {
+            background-color: #ffffff;
+            width: 100%;
+            padding: 30px 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            box-sizing: border-box;
         }
         h2 {
             text-align: center;
-            color: #2c3e50;
-            margin-bottom: 30px;
+            color: #1e293b;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            width: 100%;
         }
         .search-container {
             display: flex;
             justify-content: center;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
+            width: 100%;
         }
         .input-wrapper {
             position: relative;
-            width: 320px;
+            flex-grow: 1;
         }
         input[type="text"] {
             padding: 12px 45px 12px 16px;
@@ -74,6 +99,7 @@
             font-weight: 600;
             transition: background-color 0.3s, transform 0.1s;
             font-family: 'Inter', sans-serif;
+            white-space: nowrap;
         }
         button.btn-search:hover {
             background-color: #2563eb;
@@ -83,10 +109,10 @@
         }
         .message {
             text-align: center;
-            margin-top: 15px;
             font-size: 14px;
             color: #64748b;
             font-weight: 500;
+            line-height: 1.5;
         }
         
         .modal-overlay {
@@ -196,12 +222,19 @@
             font-weight: 700;
             color: #1e293b;
             line-height: 1.4;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             text-align: center;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
+        }
+        .card-barcd {
+            font-size: 12px;
+            font-weight: 500;
+            color: #64748b;
+            text-align: center;
+            margin-bottom: 8px;
         }
         .card-price-container {
             margin-top: 0;
@@ -380,22 +413,26 @@
 </head>
 <body>
 
-    <h2>CEK HARGA PRODUK</h2>
-    
-    <div class="search-container">
-        <div class="input-wrapper">
-            <input type="text" id="keyword" placeholder="Ketik PLU/Barcode/Nama disini ...">
-            <button class="scan-btn" onclick="startScanner()" title="Scan Barcode">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                    <circle cx="12" cy="13" r="4"></circle>
-                </svg>
-            </button>
-        </div>
-        <button class="btn-search" onclick="searchData()">Cari</button>
-    </div>
+    <div class="wrapper">
+        <h2>CEK HARGA PRODUK</h2>
+        
+        <div class="main-container">
+            <div class="search-container">
+                <div class="input-wrapper">
+                    <input type="text" id="keyword" placeholder="Ketik PLU/Barcode/Nama disini ...">
+                    <button class="scan-btn" onclick="startScanner()" title="Scan Barcode">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                            <circle cx="12" cy="13" r="4"></circle>
+                        </svg>
+                    </button>
+                </div>
+                <button class="btn-search" onclick="searchData()">Cari</button>
+            </div>
 
-    <div id="statusMessage" class="message"></div>
+            <div id="statusMessage" class="message"></div>
+        </div>
+    </div>
 
     <div id="modalOverlay" class="modal-overlay">
         <div class="modal-wrapper">
@@ -407,6 +444,7 @@
                 <div id="productPlumd" class="card-plumd"></div>
                 <div class="card-info">
                     <div id="productDesc" class="card-desc"></div>
+                    <div id="productBarcd" class="card-barcd"></div>
                     <div id="productPriceContainer" class="card-price-container"></div>
                 </div>
             </div>
@@ -443,19 +481,19 @@
         async function loadAllData() {
             try {
                 document.getElementById('statusMessage').textContent = 'Mengunduh data barcode...';
-                const barcodeResponse = await fetch(barcodeUrl);
+                const barcodeResponse = await fetch(barcodeUrl + "?t=" + Date.now());
                 if (!barcodeResponse.ok) throw new Error('Gagal mengambil data Barcode dari GitHub');
                 const barcodeText = await barcodeResponse.text();
                 parseBarcodeData(barcodeText);
 
                 document.getElementById('statusMessage').textContent = 'Mengunduh data promo...';
-                const promoResponse = await fetch(promoUrl);
+                const promoResponse = await fetch(promoUrl + "?t=" + Date.now());
                 if (!promoResponse.ok) throw new Error('Gagal mengambil data Promo dari GitHub');
                 const promoText = await promoResponse.text();
                 parsePromoData(promoText);
 
                 document.getElementById('statusMessage').textContent = 'Mengunduh data produk...';
-                const prodmastResponse = await fetch(prodmastUrl);
+                const prodmastResponse = await fetch(prodmastUrl + "?t=" + Date.now());
                 if (!prodmastResponse.ok) throw new Error('Gagal mengambil data Produk dari GitHub');
                 const prodmastText = await prodmastResponse.text();
                 csvDataLines = prodmastText.split(/\r?\n/);
@@ -624,6 +662,13 @@
 
             statusMessage.textContent = 'Mencari data...';
 
+            let matchedPlusByBarcode = [];
+            for (let [plu, barcodes] of barcodeMap.entries()) {
+                if (barcodes.some(b => b.toLowerCase().includes(keyword))) {
+                    matchedPlusByBarcode.push(plu.toLowerCase());
+                }
+            }
+
             const headers = csvDataLines[0].split('|');
             const indexPlumd = headers.indexOf('PLUMD');
             const indexDesc2 = headers.indexOf('DESC2');
@@ -638,21 +683,31 @@
                 const line = csvDataLines[i].trim();
                 if (!line) continue;
 
+                const columns = line.split('|');
+                const plumd = columns[indexPlumd] ? columns[indexPlumd].trim() : '';
+
+                let isMatch = false;
                 if (line.toLowerCase().includes(keyword)) {
-                    const columns = line.split('|');
-                    
-                    const plumd = columns[indexPlumd] ? columns[indexPlumd].trim() : '';
+                    isMatch = true;
+                } else if (matchedPlusByBarcode.includes(plumd.toLowerCase())) {
+                    isMatch = true;
+                }
+
+                if (isMatch) {
                     const desc2 = columns[indexDesc2] ? columns[indexDesc2].trim() : '';
                     let rawPrice = columns[indexPrice] || '0';
-                    
                     let cleanPrice = parseFloat(rawPrice.replace(/[^0-9.-]+/g, ''));
                     if (isNaN(cleanPrice)) cleanPrice = 0;
 
                     const activePromos = getActivePromos(plumd);
 
+                    const barcodes = barcodeMap.get(plumd) || [];
+                    const barcdDisplay = barcodes.length > 0 ? barcodes.join(', ') : '-';
+
                     searchResults.push({
                         plumd: plumd,
                         desc2: desc2,
+                        barcd: barcdDisplay,
                         cleanPrice: cleanPrice,
                         activePromos: activePromos
                     });
@@ -689,6 +744,7 @@
 
             document.getElementById('productPlumd').textContent = item.plumd;
             document.getElementById('productDesc').textContent = item.desc2;
+            document.getElementById('productBarcd').textContent = item.barcd;
 
             const priceContainer = document.getElementById('productPriceContainer');
             priceContainer.innerHTML = '';

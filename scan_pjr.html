@@ -370,7 +370,6 @@
 
     <div id="statusMessage" class="message"></div>
 
-    <!-- Modal Popup -->
     <div id="modalOverlay" class="modal-overlay">
         <div class="modal-content" id="modalContent">
             <div class="modal-header">
@@ -401,19 +400,19 @@
         async function loadAllData() {
             try {
                 document.getElementById('statusMessage').textContent = 'Mengunduh data barcode...';
-                const barcodeResponse = await fetch(barcodeUrl);
+                const barcodeResponse = await fetch(barcodeUrl + "?t=" + Date.now());
                 if (!barcodeResponse.ok) throw new Error('Gagal mengambil data Barcode');
                 const barcodeText = await barcodeResponse.text();
                 parseBarcodeData(barcodeText);
 
                 document.getElementById('statusMessage').textContent = 'Mengunduh data lokasi rak...';
-                const rakResponse = await fetch(rakUrl);
+                const rakResponse = await fetch(rakUrl + "?t=" + Date.now());
                 if (!rakResponse.ok) throw new Error('Gagal mengambil data Rak');
                 const rakText = await rakResponse.text();
                 parseRakData(rakText);
 
                 document.getElementById('statusMessage').textContent = 'Mengunduh data produk...';
-                const prodmastResponse = await fetch(prodmastUrl);
+                const prodmastResponse = await fetch(prodmastUrl + "?t=" + Date.now());
                 if (!prodmastResponse.ok) throw new Error('Gagal mengambil data Produk');
                 const prodmastText = await prodmastResponse.text();
                 csvDataLines = prodmastText.split(/\r?\n/);
@@ -531,7 +530,6 @@
                 const desc2 = columns[indexDesc2]? columns[indexDesc2].trim() : '';
                 const barcodes = barcodeMap.get(plumd) || [];
                 
-                // Cek PLUMD atau BARCD cocok dengan search terms
                 let matchSearch = searchTerms.length === 0;
                 if (searchTerms.length > 0) {
                     matchSearch = searchTerms.some(term => 
@@ -661,7 +659,6 @@
                 </div>
             `;
             
-            // Generate barcode utama
             if (mainBarcode!== '-') {
                 try {
                     JsBarcode(`#${barcodeId}`, mainBarcode, {
@@ -676,7 +673,6 @@
                 }
             }
             
-            // Generate semua barcode kalau ada
             if (hasMultipleBarcodes) {
                 data.barcodes.forEach((bc, idx) => {
                     try {
