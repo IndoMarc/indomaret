@@ -42,12 +42,25 @@
             display: flex;
             align-items: center;
             height: 100%;
+            flex: 1;
+        }
+
+        .logo-area.center {
+            justify-content: center;
+        }
+
+        .logo-area.right {
+            justify-content: flex-end;
         }
 
         .logo-area img {
             height: 35px;
             width: auto;
             object-fit: contain;
+        }
+
+        .logo-area.center img {
+            height: 80px;
         }
 
         main {
@@ -157,6 +170,9 @@
             .logo-area img {
                 height: 28px;
             }
+            .logo-area.center img {
+                height: 40px;
+            }
             nav {
                 padding: 0 8px;
                 height: 70px;
@@ -184,7 +200,10 @@
             <div class="logo-area">
                 <img src="indomaret.PNG" alt="Logo Indomaret">
             </div>
-            <div class="logo-area">
+            <div class="logo-area center">
+                <img src="mhr.jpg" alt="Logo Tengah">
+            </div>
+            <div class="logo-area right">
                 <img src="cinta.PNG" alt="Logo Cinta">
             </div>
         </header>
