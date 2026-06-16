@@ -146,9 +146,9 @@
             background: #ffffff;
             border-radius: 16px;
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            padding: 16px;
+            padding: 24px;
             width: 340px;
-            height: 440px;
+            max-height: 400px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
@@ -182,16 +182,40 @@
             background-color: #e2e8f0;
             color: #0f172a;
         }
+        .card-scrollable-content {
+            width: 100%;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding-right: 4px;
+            box-sizing: border-box;
+        }
+        .card-scrollable-content::-webkit-scrollbar {
+            width: 5px;
+        }
+        .card-scrollable-content::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        .card-scrollable-content::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .card-scrollable-content::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
         .card-image-container {
             width: 100%;
-            height: 170px;
+            height: 140px;
             display: flex;
             align-items: center;
             justify-content: center;
             background-color: #ffffff;
             border-radius: 12px;
             overflow: hidden;
-            position: relative;
+            flex-shrink: 0;
         }
         .product-image {
             max-width: 100%;
@@ -199,77 +223,51 @@
             object-fit: contain;
             transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
         }
-        .card-plumd {
-            text-align: center;
-            font-size: 13px;
-            font-weight: 600;
-            color: #64748b;
-            margin-top: 4px;
-            margin-bottom: 8px;
-            letter-spacing: 0.5px;
-            transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
         .card-info {
-            flex-grow: 1;
+            width: 100%;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;
-            overflow: hidden;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            text-align: center;
             transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .card-desc {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 700;
             color: #1e293b;
             line-height: 1.4;
-            margin-bottom: 4px;
-            text-align: center;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .card-barcd {
-            font-size: 12px;
-            font-weight: 500;
-            color: #64748b;
-            text-align: center;
-            margin-bottom: 8px;
+            margin: 0;
+            width: 100%;
         }
         .card-price-container {
-            margin-top: 0;
-            overflow-y: auto;
-            flex-grow: 1;
-            padding-right: 4px;
-            text-align: center;
-        }
-        .card-price-container::-webkit-scrollbar {
-            width: 4px;
-        }
-        .card-price-container::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 4px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
         }
         .strike-price {
             text-decoration: line-through;
             color: #94a3b8;
             font-size: 14px;
-            margin-bottom: 2px;
-            display: block;
+            margin: 0;
         }
         .promo-price {
             color: #ef4444;
             font-weight: 800;
-            font-size: 30px;
-            display: block;
-            line-height: 1.2;
+            font-size: 32px;
+            line-height: 1;
+            margin: 0;
         }
         .normal-price {
-            font-size: 30px;
+            font-size: 32px;
             font-weight: 800;
             color: #0f172a;
-            display: block;
-            line-height: 1.2;
+            line-height: 1;
+            margin: 0;
         }
         .promo-badge {
             display: inline-block;
@@ -277,21 +275,21 @@
             color: white;
             font-size: 11px;
             font-weight: 600;
-            padding: 4px 8px;
+            padding: 6px 12px;
             border-radius: 6px;
-            margin-top: 6px;
-            line-height: 1.2;
+            line-height: 1.3;
+            max-width: 100%;
+            box-sizing: border-box;
+            margin-top: 4px;
         }
         
         .animated-nav-out .product-image,
-        .animated-nav-out .card-plumd,
         .animated-nav-out .card-info {
             opacity: 0;
             transform: translateY(-10px);
         }
         
         .animated-nav-in .product-image,
-        .animated-nav-in .card-plumd,
         .animated-nav-in .card-info {
             opacity: 0;
             transform: translateY(10px);
@@ -438,14 +436,14 @@
         <div class="modal-wrapper">
             <div class="card" id="productCard">
                 <button class="btn-close" onclick="closeModal()">×</button>
-                <div class="card-image-container">
-                    <img id="productImg" class="product-image" src="" alt="">
-                </div>
-                <div id="productPlumd" class="card-plumd"></div>
-                <div class="card-info">
-                    <div id="productDesc" class="card-desc"></div>
-                    <div id="productBarcd" class="card-barcd"></div>
-                    <div id="productPriceContainer" class="card-price-container"></div>
+                <div class="card-scrollable-content" id="cardScrollContent">
+                    <div class="card-image-container">
+                        <img id="productImg" class="product-image" src="" alt="">
+                    </div>
+                    <div class="card-info">
+                        <div id="productDesc" class="card-desc"></div>
+                        <div id="productPriceContainer" class="card-price-container"></div>
+                    </div>
                 </div>
             </div>
             
@@ -735,6 +733,8 @@
                 maximumFractionDigits: 0
             });
 
+            document.getElementById('cardScrollContent').scrollTop = 0;
+
             const imgElement = document.getElementById('productImg');
             imgElement.src = `https://cdn-klik.klikindomaret.com/klik-catalog/product/${item.plumd}_1.jpg`;
             imgElement.alt = item.desc2;
@@ -742,9 +742,7 @@
                 this.src = 'https://placehold.co/250x250?text=Tidak+Ada+Gambar';
             };
 
-            document.getElementById('productPlumd').textContent = item.plumd;
             document.getElementById('productDesc').textContent = item.desc2;
-            document.getElementById('productBarcd').textContent = item.barcd;
 
             const priceContainer = document.getElementById('productPriceContainer');
             priceContainer.innerHTML = '';
@@ -789,7 +787,6 @@
                 badge.className = 'promo-badge';
                 badge.textContent = lbl;
                 priceContainer.appendChild(badge);
-                priceContainer.appendChild(document.createElement('br'));
             });
 
             document.getElementById('pageInfo').textContent = `${currentPage + 1} / ${searchResults.length}`;
