@@ -212,6 +212,7 @@
             <iframe src="chat.php" id="iframe-chat" class="active-iframe"></iframe>
             <iframe src="cek_harga.html" id="iframe-harga"></iframe>
             <iframe src="scan_pjr.html" id="iframe-pjr"></iframe>
+            <iframe src="plano.html" id="iframe-plano"></iframe>
             <iframe src="qr_klik.html" id="iframe-qr"></iframe>
         </main>
 
@@ -232,7 +233,13 @@
                 <li>
                     <a onclick="switchTab(this, 'iframe-pjr')">
                         <i class="fas fa-barcode"></i>
-                        <span>Scan ITT PJR</span>
+                        <span>Scan ITT</span>
+                    </a>
+                </li>
+                <li>
+                    <a onclick="switchTab(this, 'iframe-plano')">
+                        <i class="fas fa-layer-group"></i>
+                        <span>Planogram</span>
                     </a>
                 </li>
                 <li>

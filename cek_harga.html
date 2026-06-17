@@ -234,7 +234,7 @@
             transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .card-desc {
-            font-size: 16px;
+            font-size: 13px;
             font-weight: 700;
             color: #1e293b;
             line-height: 1.4;
@@ -273,13 +273,20 @@
             display: inline-block;
             background-color: #f59e0b;
             color: white;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
             padding: 6px 12px;
             border-radius: 6px;
             line-height: 1.3;
             max-width: 100%;
             box-sizing: border-box;
+            margin-top: 4px;
+        }
+        .promo-period {
+            display: inline-block;
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 500;
             margin-top: 4px;
         }
         
@@ -547,7 +554,8 @@
             const disallowedMechanisms = [
                 "BELI ITEM HEMAT MINGGU INI",
                 "BELI ITEM PROMO 4 HARI",
-                "SETIAP PEMBELIAN"
+                "SETIAP PEMBELIAN",
+                "TRANSAKSI ALL PAYMENT POINT"
             ];
 
             for (let i = 1; i < lines.length; i++) {
@@ -595,7 +603,7 @@
                             if (!promoMap.has(plu)) {
                                 promoMap.set(plu, []);
                             }
-                            promoMap.get(plu).push({ mekanisme, qtyMin, tglAwal, tglAkhir, potongan });
+                            promoMap.get(plu).push({ mekanisme, qtyMin, tglAwal, tglAkhir, potongan, tglAwalRaw, tglAkhirRaw });
                         }
                     });
                 } else {
@@ -604,7 +612,7 @@
                         if (!promoMap.has(plu)) {
                             promoMap.set(plu, []);
                         }
-                        promoMap.get(plu).push({ mekanisme, qtyMin, tglAwal, tglAkhir, potongan });
+                        promoMap.get(plu).push({ mekanisme, qtyMin, tglAwal, tglAkhir, potongan, tglAwalRaw, tglAkhirRaw });
                     }
                 }
             }
@@ -722,6 +730,11 @@
             }
         }
 
+        function formatDateDisplay(dateStr) {
+            if (!dateStr) return '';
+            return dateStr.split(' ')[0];
+        }
+
         function renderCurrentCard() {
             if (searchResults.length === 0) return;
 
@@ -750,10 +763,14 @@
             let totalPotongan = 0;
             let mekanismeLabels = [];
             let displayPromo = false;
+            let promoPeriods = [];
             
             if (item.activePromos.length > 0) {
                 item.activePromos.forEach(p => {
                     mekanismeLabels.push(p.mekanisme);
+                    if (p.tglAwalRaw && p.tglAkhirRaw) {
+                        promoPeriods.push(`${formatDateDisplay(p.tglAwalRaw)} s/d ${formatDateDisplay(p.tglAkhirRaw)}`);
+                    }
                     const meksUpper = p.mekanisme.toUpperCase();
                     if (!meksUpper.startsWith("SETIAP PEMBELIAN") && !meksUpper.startsWith("BELI ITEM PSPB")) {
                         totalPotongan += p.potongan;
@@ -788,6 +805,16 @@
                 badge.textContent = lbl;
                 priceContainer.appendChild(badge);
             });
+
+            if (promoPeriods.length > 0) {
+                const uniquePeriods = [...new Set(promoPeriods)];
+                uniquePeriods.forEach(period => {
+                    const periodSpan = document.createElement('span');
+                    periodSpan.className = 'promo-period';
+                    periodSpan.textContent = `Periode Promosi : ${period}`;
+                    priceContainer.appendChild(periodSpan);
+                });
+            }
 
             document.getElementById('pageInfo').textContent = `${currentPage + 1} / ${searchResults.length}`;
             document.getElementById('btnPrev').disabled = (currentPage === 0);
