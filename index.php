@@ -16,20 +16,19 @@
             background-color: #f8fafc;
             overflow: hidden;
             height: 100vh;
+            height: 100dvh;
         }
 
         .container {
             display: flex;
+            flex-direction: column;
             height: 100vh;
+            height: 100dvh;
             width: 100%;
             position: relative;
         }
 
         header {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
             height: 60px;
             background: #ffffff;
             display: flex;
@@ -40,6 +39,7 @@
             border-bottom: 1px solid #e2e8f0;
             z-index: 999;
             box-sizing: border-box;
+            flex-shrink: 0;
         }
 
         .toggle-btn-container {
@@ -140,6 +140,7 @@
             left: -290px;
             width: 280px;
             height: 100vh;
+            height: 100dvh;
             background: #ffffff;
             box-shadow: 4px 0 30px rgba(15, 23, 42, 0.08);
             border-right: 1px solid #e2e8f0;
@@ -334,6 +335,7 @@
             left: 0;
             width: 100vw;
             height: 100vh;
+            height: 100dvh;
             background: rgba(15, 23, 42, 0.3);
             z-index: 9999;
             display: none;
@@ -348,12 +350,9 @@
         }
 
         main {
-            position: absolute;
-            top: 60px;
-            left: 0;
-            right: 0;
-            bottom: 40px;
+            flex: 1;
             background-color: #ffffff;
+            position: relative;
         }
 
         iframe {
@@ -369,10 +368,6 @@
         }
 
         footer {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
             height: 40px;
             background: #ffffff;
             border-top: 1px solid #e2e8f0;
@@ -381,6 +376,7 @@
             justify-content: center;
             z-index: 999;
             box-sizing: border-box;
+            flex-shrink: 0;
         }
 
         .footer-text {
