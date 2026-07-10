@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INDOMARET</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8fafc;
+            overflow: hidden;
+            height: 100vh;
+            height: 100dvh;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+            width: 100%;
+            position: relative;
+            transition: filter 0.3s ease;
+        }
+
+        .container.blur-background {
+            filter: blur(8px);
+        }
+
+        header {
+            height: 60px;
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.04);
+            border-bottom: 1px solid #e2e8f0;
+            z-index: 999;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+
+        .toggle-btn-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .toggle-btn {
+            width: 36px;
+            height: 36px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #64748b;
+            transition: all 0.2s ease;
+            font-size: 18px;
+        }
+
+        .toggle-btn:hover {
+            color: #2563eb;
+            background: #e2e8f0;
+        }
+
+        .hint-arrow {
+            position: absolute;
+            left: 50px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #2563eb;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+            animation: bounceLeft 2s infinite;
+            z-index: 1000;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .hint-arrow::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 6px 6px 6px 0;
+            border-style: solid;
+            border-color: transparent #2563eb transparent transparent;
+        }
+
+        .hint-arrow.opened {
+            background: #10b981;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            animation: none;
+            transform: none;
+        }
+
+        .hint-arrow.opened::before {
+            border-color: transparent #10b981 transparent transparent;
+        }
+
+        @keyframes bounceLeft {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateX(0);
+            }
+            40% {
+                transform: translateX(8px);
+            }
+            60% {
+                transform: translateX(4px);
+            }
+        }
+
+        .header-logo-right {
+            display: flex;
+            align-items: center;
+            height: 100%;
+        }
+
+        .header-logo-right img {
+            height: 40px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: -290px;
+            width: 280px;
+            height: 100vh;
+            height: 100dvh;
+            background: #ffffff;
+            box-shadow: 4px 0 30px rgba(15, 23, 42, 0.08);
+            border-right: 1px solid #e2e8f0;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+            padding: 20px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateX(0);
+            will-change: transform;
+        }
+
+        nav.open {
+            transform: translateX(290px);
+        }
+
+        .sidebar-top {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            width: 100%;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+
+        .sidebar-top::-webkit-scrollbar {
+            display: none;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            width: 100%;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .logo-top {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-top img {
+            height: 55px;
+            width: auto;
+            object-fit: contain;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: #64748b;
+            font-size: 20px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.8;
+            transition: opacity 0.2s, color 0.2s;
+            position: absolute;
+            right: 0;
+        }
+
+        .close-btn:hover {
+            opacity: 1;
+            color: #ef4444;
+        }
+
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            width: 100%;
+        }
+
+        nav ul li {
+            width: 100%;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            font-size: 15px;
+            font-weight: 600;
+            border-radius: 8px;
+            background: transparent;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+
+        nav ul li a .menu-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        nav ul li a i.menu-icon {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        nav ul li a:hover {
+            color: #2563eb;
+            background: #f1f5f9;
+        }
+        
+        nav ul li a.active-tab {
+            color: #ffffff;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+        }
+
+        .sidebar-bottom {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 20px 20px 20px;
+            width: 100%;
+            border-top: 1px solid #e2e8f0;
+            flex-shrink: 0;
+            box-sizing: border-box;
+            margin-top: 10px;
+        }
+
+        .timestamp-container {
+            background: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 10px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            border: 1px solid #e2e8f0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            box-sizing: border-box;
+        }
+
+        .timestamp-day {
+            font-size: 11px;
+            color: #2563eb;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .timestamp-time {
+            font-size: 16px;
+            color: #0f172a;
+            font-weight: 700;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: 1px;
+            margin: 2px 0;
+        }
+
+        .timestamp-date {
+            font-size: 10px;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            background: rgba(15, 23, 42, 0.3);
+            z-index: 9999;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: opacity;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+            opacity: 1;
+        }
+
+        main {
+            flex: 1;
+            background-color: #ffffff;
+            position: relative;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: #ffffff;
+            display: none;
+        }
+
+        iframe.active-iframe {
+            display: block;
+        }
+
+        footer {
+            height: 40px;
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+
+        .footer-text {
+            font-size: 12px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .swal2-container {
+            background: rgba(15, 23, 42, 0.4) !important;
+        }
+        
+        .swal-custom-popup {
+            border-radius: 16px !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+            padding: 2em 1.5em !important;
+            border: 1px solid #e2e8f0;
+        }
+        .swal-custom-title {
+            color: #0f172a !important;
+            font-size: 1.4em !important;
+            font-weight: 700 !important;
+        }
+        .swal-custom-button {
+            border-radius: 8px !important;
+            padding: 12px 28px !important;
+            font-weight: 600 !important;
+            font-size: 14.5px !important;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2) !important;
+            letter-spacing: 0.3px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="main-container">
+        <header>
+            <div class="toggle-btn-container">
+                <button class="toggle-btn" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="hint-arrow" id="hint-arrow">
+                    <i class="fas fa-arrow-left" id="hint-icon"></i> <span id="hint-text">Klik untuk melihat daftar menu</span>
+                </div>
+            </div>
+            <div class="header-logo-right">
+                <img src="mhr.jpg" alt="Logo Kanan">
+            </div>
+        </header>
+
+        <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+        <nav id="sidebar">
+            <div class="sidebar-top">
+                <div class="sidebar-header">
+                    <div class="logo-top">
+                        <img src="indomaret.PNG" alt="Logo Indomaret">
+                    </div>
+                    <button class="close-btn" onclick="toggleSidebar()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <ul>
+                    <li>
+                        <a class="active-tab" onclick="switchTab(this, 'iframe-chat')">
+                            <span class="menu-content">
+                                <i class="fas fa-comments align-icon menu-icon"></i>
+                                <span>Beranda Chat</span>
+                            </span>
+                        </a>
+                    </li>
+                    <li>
+                        <a onclick="switchTab(this, 'iframe-pjr')">
+                            <span class="menu-content">
+                                <i class="fas fa-barcode menu-icon"></i>
+                                <span>Scan ITT PJR</span>
+                            </span>
+                        </a>
+                    </li>
+                    <li>
+                        <a onclick="switchTab(this, 'iframe-plano')">
+                            <span class="menu-content">
+                                <i class="fas fa-layer-group menu-icon"></i>
+                                <span>Cek Planogram</span>
+                            </span>
+                        </a>
+                    </li>
+                    <li>
+                        <a onclick="switchTab(this, 'iframe-qr')">
+                            <span class="menu-content">
+                                <i class="fas fa-qrcode menu-icon"></i>
+                                <span>QRCode PLU</span>
+                            </span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="sidebar-bottom">
+                <div class="timestamp-container" id="live-timestamp">
+                </div>
+            </div>
+        </nav>
+
+        <main>
+            <iframe src="chat.php" id="iframe-chat" class="active-iframe"></iframe>
+            <iframe src="scan_pjr.html" id="iframe-pjr"></iframe>
+            <iframe src="plano.html" id="iframe-plano"></iframe>
+            <iframe src="qr_klik.html" id="iframe-qr"></iframe>
+        </main>
+
+        <footer>
+            <div class="footer-text">&copy; Made With 🖤 | For IDM Type SDS</div>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const mainContainer = document.getElementById('main-container');
+            
+            Swal.fire({
+                title: 'Informasi Penting !',
+                html: '<div style="color: #64748b; font-size: 14.5px; line-height: 1.6; margin-top: 5px;">Apabila aplikasi mengalami kendala atau error, silakan <b>Hapus Data History Penjelajahan</b> atau <b>Hapus Cache</b> terlebih dahulu.</div>',
+                icon: 'warning',
+                iconColor: '#f59e0b',
+                background: '#ffffff',
+                confirmButtonColor: '#2563eb',
+                confirmButtonText: '<i class="fas fa-check-circle" style="margin-right: 6px;"></i> Mengerti',
+                customClass: {
+                    popup: 'swal-custom-popup',
+                    title: 'swal-custom-title',
+                    confirmButton: 'swal-custom-button'
+                },
+                didOpen: () => {
+                    mainContainer.classList.add('blur-background');
+                },
+                willClose: () => {
+                    mainContainer.classList.remove('blur-background');
+                }
+            });
+        });
+
+        function removeActiveStates() {
+            const links = document.querySelectorAll('nav ul li a');
+            links.forEach(link => {
+                link.classList.remove('active-tab');
+            });
+        }
+
+        function switchTab(element, iframeId) {
+            removeActiveStates();
+            element.classList.add('active-tab');
+
+            const iframes = document.querySelectorAll('main iframe');
+            iframes.forEach(iframe => iframe.classList.remove('active-iframe'));
+            
+            document.getElementById(iframeId).classList.add('active-iframe');
+            
+            toggleSidebar();
+        }
+
+        function updateGreeting() {
+            const now = new Date();
+            const hour = now.getHours();
+            const hintText = document.getElementById('hint-text');
+            const hintIcon = document.getElementById('hint-icon');
+            
+            let greeting = "";
+            let iconClass = "";
+            
+            if (hour >= 4 && hour < 10) {
+                greeting = "Selamat Pagi";
+                iconClass = "fas fa-cloud-sun";
+            } else if (hour >= 10 && hour < 15) {
+                greeting = "Selamat Siang";
+                iconClass = "fas fa-sun";
+            } else if (hour >= 15 && hour < 18) {
+                greeting = "Selamat Sore";
+                iconClass = "fas fa-cloud-moon-rain";
+            } else {
+                greeting = "Selamat Malam";
+                iconClass = "fas fa-moon";
+            }
+            
+            if (hintText && hintIcon) {
+                hintText.textContent = greeting;
+                hintIcon.className = iconClass;
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            const hintArrow = document.getElementById('hint-arrow');
+            
+            if (!sidebar.classList.contains('open')) {
+                overlay.classList.add('show');
+                sidebar.classList.add('open');
+                if (hintArrow) {
+                    hintArrow.classList.add('opened');
+                    updateGreeting();
+                }
+            } else {
+                overlay.classList.remove('show');
+                sidebar.classList.remove('open');
+            }
+        }
+
+        function updateTimestamp() {
+            const now = new Date();
+            const days = ['MINGGU', 'SENIN', 'SELASA', 'RABU', 'KAMIS', 'JUMAT', 'SABTU'];
+            const dayName = days[now.getDay()];
+            
+            const dateOptions = { day: '2-digit', month: 'long', year: 'numeric' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            
+            const dateString = now.toLocaleDateString('id-ID', dateOptions);
+            const timeString = now.toLocaleTimeString('id-ID', timeOptions).replace(/\./g, ':');
+            
+            document.getElementById('live-timestamp').innerHTML = `
+                <div class="timestamp-day">${dayName}</div>
+                <div class="timestamp-time">${timeString}</div>
+                <div class="timestamp-date">${dateString}</div>
+            `;
+        }
+        
+        setInterval(updateTimestamp, 1000);
+        updateTimestamp();
+    </script>
+</body>
+</html>
