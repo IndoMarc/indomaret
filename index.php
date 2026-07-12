@@ -446,6 +446,14 @@
                         </a>
                     </li>
                     <li>
+                        <a onclick="switchTab(this, 'iframe-harga')">
+                            <span class="menu-content">
+                                <i class="fas fa-tags menu-icon"></i>
+                                <span>Cek Harga</span>
+                            </span>
+                        </a>
+                    </li>
+                    <li>
                         <a onclick="switchTab(this, 'iframe-pjr')">
                             <span class="menu-content">
                                 <i class="fas fa-barcode menu-icon"></i>
@@ -479,13 +487,14 @@
 
         <main>
             <iframe src="chat.php" id="iframe-chat" class="active-iframe"></iframe>
+            <iframe src="harga.html" id="iframe-harga"></iframe>
             <iframe src="scan_pjr.html" id="iframe-pjr"></iframe>
             <iframe src="plano.html" id="iframe-plano"></iframe>
             <iframe src="qr_klik.html" id="iframe-qr"></iframe>
         </main>
 
         <footer>
-            <div class="footer-text">&copy; Made With 🖤 | For IDM Type SDS</div>
+            <div class="footer-text">&copy; Dibuat dengan 🖤 - Untuk Toko Indomaret Tipe SDS</div>
         </footer>
     </div>
 

@@ -396,7 +396,7 @@
                 csvDataLines = prodmastText.split(/\r?\n/);
 
                 isDataLoaded = true;
-                document.getElementById('statusMessage').textContent = 'Silakan pilih filter dan klik tampilkan ...';
+                document.getElementById('statusMessage').textContent = 'Berhasil memuat data ...';
             } catch (error) {
                 document.getElementById('statusMessage').textContent = 'Error memuat data: ' + error.message;
             }
@@ -532,7 +532,7 @@
 
             if (allResults.length > 0) {
                 renderGroupedGrid();
-                statusMessage.textContent = `Ditemukan ${allResults.length} data. Menampilkan pop-up...`;
+                statusMessage.textContent = `Ditemukan ${allResults.length} data ...`;
                 openModal();
             } else {
                 statusMessage.textContent = 'Data tidak ditemukan.';
