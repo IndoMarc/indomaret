@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>index</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f9f9fb;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            text-align: center;
+            background: #ffffff;
+            padding: 48px 32px;
+            border-radius: 16px;
+            border: 1px solid #eaeaea;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.02);
+            max-width: 360px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #111111;
+            font-size: 22px;
+            font-weight: 600;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.5px;
+        }
+        p {
+            color: #666666;
+            font-size: 14px;
+            margin: 0 0 32px 0;
+            line-height: 1.5;
+        }
+        .menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .menu-item {
+            display: block;
+            text-decoration: none;
+            background-color: #111111;
+            color: #ffffff;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.2s ease, transform 0.15s ease;
+        }
+        .menu-item:hover {
+            background-color: #222222;
+            transform: translateY(-1px);
+        }
+        .menu-item:active {
+            transform: translateY(0);
+        }
+        .menu-item.secondary {
+            background-color: #f1f1f3;
+            color: #111111;
+            border: 1px solid #e1e1e4;
+        }
+        .menu-item.secondary:hover {
+            background-color: #e5e5e8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>INDEKS MENU</h1>
+        <p>Silahkan pilih aplikasi yg ingin digunakan</p>
+        <div class="menu-list">
+            <a href="https://indomaret.wasmer.app/" class="menu-item secondary">- Indomaret App -</a>
+			<a href="https://stock-opname.wasmer.app/" class="menu-item secondary">- Stock Opname -</a>
+        </div>
+    </div>
+
+</body>
+</html>

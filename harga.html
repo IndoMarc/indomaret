@@ -160,10 +160,17 @@
             gap: 2px;
             text-align: left;
             overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
             
             animation: cardAppear 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             opacity: 0;
             transform: translateY(10px);
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
 
         @keyframes cardAppear {
@@ -233,6 +240,102 @@
             font-weight: 700;  /* Ketebalan font dikurangi dari 900 ke 700 */
             margin-top: auto;
             padding-top: 2px;
+        }
+
+        /* Modal Pop-up Melayang & Zoom */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-card {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 20px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-left: 5px solid #0d6efd;
+            position: relative;
+            transform: scale(0.7);
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #f1f5f9;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #64748b;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .modal-close:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .modal-card .product-image-container {
+            height: 180px;
+            margin-bottom: 10px;
+        }
+
+        .modal-card .val-plu {
+            font-size: 0.85rem;
+        }
+
+        .modal-card .val-deskripsi {
+            font-size: 1.05rem;
+            -webkit-line-clamp: unset;
+            min-height: auto;
+            margin-bottom: 8px;
+        }
+
+        .modal-card .val-harga-normal-coret {
+            font-size: 0.95rem;
+        }
+
+        .modal-card .val-potongan {
+            font-size: 0.85rem;
+            padding: 2px 8px;
+        }
+
+        .modal-card .val-harga-final {
+            font-size: 1.4rem;
+            padding-top: 6px;
         }
 
         /* Navigasi Paginasi Premium Modern */
@@ -317,6 +420,13 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="productModal" onclick="closeModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+        <div id="modalContent"></div>
+    </div>
+</div>
+
 <script>
     let db = { barcode: [], prodmast: [], promo: [] };
     let searchResults = []; 
@@ -335,9 +445,9 @@
     const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
 
     document.addEventListener('DOMContentLoaded', async () => {
-        const urlBarcode = 'https://raw.githubusercontent.com/IndoMarc/database/refs/heads/main/UGD_BARCODE.CSV';
-        const urlProdmast = 'https://raw.githubusercontent.com/IndoMarc/database/refs/heads/main/UGD_PRODMAST.CSV';
-        const urlPromo = 'https://raw.githubusercontent.com/IndoMarc/database/refs/heads/main/UGD_promo_matriks.CSV';
+        const urlBarcode = 'UGD_BARCODE.CSV';
+        const urlProdmast = 'UGD_PRODMAST.CSV';
+        const urlPromo = 'UGD_promo_matriks.CSV';
 
         try {
             const [resBarcode, resProdmast, resPromo] = await Promise.all([
@@ -426,6 +536,49 @@
     }
     /* =============================================================== */
 
+    function showModal(itemIndex) {
+        const item = searchResults[itemIndex];
+        if (!item) return;
+
+        let contentHTML = `
+            <div class="product-image-container">
+                <img class="product-image" 
+                     src="https://cdn-klik.klikindomaret.com/klik-catalog/product/${item.targetPLU}_1.jpg" 
+                     alt="${item.prod ? item.prod.DESC2 : 'Produk'}" 
+                     referrerpolicy="no-referrer"
+                     onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'60\' height=\'60\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23cbd5e1\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><rect x=\'3\' y=\'3\' width=\'18\' height=\'18\' rx=\'2\' ry=\'2\'/><circle cx=\'8.5\' cy=\'8.5\' r=\'1.5\'/><polyline points=\'21 15 16 10 5 21\'/></svg>';">
+            </div>
+            <div class="val-plu">${item.targetPLU}</div>
+            <div class="val-deskripsi">${item.prod ? item.prod.DESC2 : 'Produk Tidak Ditemukan'}</div>
+        `;
+
+        if (item.potonganSatuan > 0) {
+            contentHTML += `
+                <div class="val-harga-normal-coret">${formatIDR(item.hargaNormal)}</div>
+                <div class="val-potongan">-${formatIDR(item.potonganSatuan)}</div>
+                <div class="val-harga-final">${formatIDR(item.hargaNormal - item.potonganSatuan)}</div>
+            `;
+        } else {
+            contentHTML += `
+                <div class="val-harga-final" style="color: #0d6efd;">${formatIDR(item.hargaNormal)}</div>
+            `;
+        }
+
+        document.getElementById('modalContent').innerHTML = contentHTML;
+        const modal = document.getElementById('productModal');
+        modal.style.display = 'flex';
+        setTimeout(() => modal.classList.add('active'), 10);
+    }
+
+    function closeModal(event) {
+        if (event && event.target !== event.currentTarget && !event.target.classList.contains('modal-close')) return;
+        const modal = document.getElementById('productModal');
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 250);
+    }
+
     function renderPage(page) {
         resTbody.innerHTML = "";
         const startIndex = (page - 1) * itemsPerPage;
@@ -433,17 +586,18 @@
         const pageItems = searchResults.slice(startIndex, endIndex);
 
         pageItems.forEach((item, index) => {
+            const globalIndex = startIndex + index;
             let cardHTML = `
-                <div class="card" data-plu="${item.targetPLU}" style="animation-delay: ${index * 0.04}s">
+                <div class="card" data-plu="${item.targetPLU}" style="animation-delay: ${index * 0.04}s" onclick="showModal(${globalIndex})">
                     <div class="product-image-container">
                         <img class="product-image" 
                              src="https://cdn-klik.klikindomaret.com/klik-catalog/product/${item.targetPLU}_1.jpg" 
-                             alt="${item.prod ? item.prod.SINGKATAN : 'Produk'}" 
+                             alt="${item.prod ? item.prod.DESC2 : 'Produk'}" 
                              referrerpolicy="no-referrer"
                              onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'60\' height=\'60\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23cbd5e1\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'><rect x=\'3\' y=\'3\' width=\'18\' height=\'18\' rx=\'2\' ry=\'2\'/><circle cx=\'8.5\' cy=\'8.5\' r=\'1.5\'/><polyline points=\'21 15 16 10 5 21\'/></svg>';">
                     </div>
                     <div class="val-plu">${item.targetPLU}</div>
-                    <div class="val-deskripsi">${item.prod ? item.prod.SINGKATAN : 'Produk Tidak Ditemukan'}</div>
+                    <div class="val-deskripsi">${item.prod ? item.prod.DESC2 : 'Produk Tidak Ditemukan'}</div>
             `;
 
             if (item.potonganSatuan > 0) {
@@ -490,7 +644,7 @@
         });
 
         db.prodmast.forEach(i => {
-            if ((i.PLUMD || "").toUpperCase().includes(query) || (i.SINGKATAN || "").toUpperCase().includes(query)) {
+            if ((i.PLUMD || "").toUpperCase().includes(query) || (i.DESC2 || "").toUpperCase().includes(query)) {
                 matchedPLUs.add(i.PLUMD);
             }
         });
