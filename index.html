@@ -134,10 +134,23 @@
             height: 100%;
         }
 
-        .header-logo-right img {
-            height: 40px;
-            width: auto;
-            object-fit: contain;
+        .header-logo-right a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: #f1f5f9;
+            color: #64748b;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 16px;
+            transition: all 0.2s ease;
+        }
+
+        .header-logo-right a:hover {
+            color: #2563eb;
+            background: #e2e8f0;
         }
 
         nav {
@@ -420,7 +433,9 @@
                 </div>
             </div>
             <div class="header-logo-right">
-                <img src="mhr.jpg" alt="Logo Kanan">
+                <a href="https://stock-opname.wasmer.app/" title="Buka Link">
+                    <i class="fas fa-arrow-up-right-from-square"></i>
+                </a>
             </div>
         </header>
 
@@ -485,7 +500,7 @@
         </main>
 
         <footer>
-            <div class="footer-text">~ &copy; Made With 🖤 ~</div>
+            <div class="footer-text">~ m.h.r ~</div>
         </footer>
     </div>
 
