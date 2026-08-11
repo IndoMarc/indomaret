@@ -580,6 +580,9 @@
             padding: 8px;
             background: white;
             border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .show-all-barcodes-itt {
             color: var(--primary);
@@ -921,9 +924,9 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col">
+<body class="bg-gray-100 h-screen flex flex-col overflow-hidden">
 
-    <header class="bg-white text-gray-800 flex items-center justify-between px-4 py-3 shadow-sm border-b border-gray-200 z-30 sticky top-0">
+    <header class="bg-white text-gray-800 flex items-center justify-between px-4 py-3 shadow-sm border-b border-gray-200 z-30 sticky top-0 shrink-0">
         <button onclick="toggleSidebar()" class="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 focus:outline-none transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
@@ -1004,7 +1007,7 @@
         </div>
     </aside>
 
-    <main class="flex-1 p-4 md:p-8 overflow-y-auto">
+    <main id="main-content" class="flex-1 p-4 md:p-8 overflow-y-auto">
         
         <div id="page-beranda" class="app-card">
             <h2 class="text-center text-black font-bold text-xl md:text-2xl mb-4 tracking-tight">CEK HARGA</h2>
@@ -1139,7 +1142,7 @@
 
     </main>
 
-    <footer class="bg-white text-gray-500 text-center py-4 text-xs md:text-sm border-t border-gray-200 mt-auto">
+    <footer class="bg-white text-gray-500 text-center py-4 text-xs md:text-sm border-t border-gray-200 mt-auto shrink-0">
         <p>~ m.h.r ~</p>
     </footer>
 
@@ -1466,7 +1469,7 @@
         function ubahHalaman(arah) {
             currentPage += arah;
             renderPage(currentPage);
-            window.scrollTo({ top: 0, behavior: 'smooth' }); 
+            document.getElementById('main-content').scrollTo({ top: 0, behavior: 'smooth' }); 
         }
 
         function cariData() {
@@ -1516,7 +1519,7 @@
 
             renderPage(currentPage);
             keywordInput.value = "";
-            window.scrollTo({ top: 0, behavior: 'smooth' }); 
+            document.getElementById('main-content').scrollTo({ top: 0, behavior: 'smooth' }); 
         }
 
         keywordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') cariData(); });
