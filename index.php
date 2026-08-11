@@ -29,6 +29,12 @@
         body { 
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
             touch-action: manipulation;
+            margin: 0;
+            padding-bottom: 50px;
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
         }
 
         input[type="text"], input[type="number"], input[type="file"], select, textarea {
@@ -922,9 +928,30 @@
             text-align: center;
             font-weight: 600;
         }
+
+        .main-footer {
+            background: #fff;
+            height: 50px;
+            box-shadow: 0 -2px 8px rgba(0,0,0,0.05);
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-top: 1px solid #eee;
+        }
+        .footer-text {
+            font-size: 13px;
+            color: #2c3e50;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
-<body class="bg-gray-100 h-screen flex flex-col overflow-hidden">
+<body>
 
     <header class="bg-white text-gray-800 flex items-center justify-between px-4 py-3 shadow-sm border-b border-gray-200 z-30 sticky top-0 shrink-0">
         <button onclick="toggleSidebar()" class="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 focus:outline-none transition-colors">
@@ -1142,8 +1169,8 @@
 
     </main>
 
-    <footer class="bg-white text-gray-500 text-center py-4 text-xs md:text-sm border-t border-gray-200 mt-auto shrink-0">
-        <p>~ m.h.r ~</p>
+    <footer class="main-footer">
+        <div class="footer-text">~ m.h.r ~</div>
     </footer>
 
     <div class="modal-overlay" id="productModal" onclick="closeModal(event)">
@@ -1358,8 +1385,8 @@
                     config, 
                     (decodedText) => {
                         keywordInput.value = decodedText; 
-                        stopScanner();                    
-                        cariData();                       
+                        stopScanner();                     
+                        cariData();                        
                     },
                     (errorMessage) => {}
                 ).catch(err => {
