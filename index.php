@@ -961,7 +961,7 @@
         </button>
         
         <div class="flex-1 flex justify-center items-center">
-            <img src="indomaret.PNG" alt="Indomaret" class="h-8 object-contain max-w-[140px]" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'30\' viewBox=\'0 0 120 30\'><rect width=\'120\' height=\'30\' fill=\'%230064D2\'/><text x=\'50%25\' y=\'55%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'white\' font-family=\'sans-serif\' font-weight=\'bold\' font-size=\'12\'>INDOMARET</text></svg>';">
+            <h1 id="header-title" class="text-black font-bold text-lg md:text-xl tracking-tight">CEK HARGA</h1>
         </div>
         
         <a href="https://stock-opname.wasmer.app/" class="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 focus:outline-none transition-colors" title="Buka Stock Opname">
@@ -975,13 +975,8 @@
 
     <aside id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-white text-gray-800 flex flex-col p-4 z-50 -translate-x-full transition-transform duration-300 ease-in-out shadow-2xl border-r border-gray-200">
         <div class="flex items-center justify-between mb-6 pb-2 border-b border-gray-200">
-            <div class="flex items-center gap-3">
-                <div class="p-1.5 rounded-full bg-blue-50 text-blue-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                    </svg>
-                </div>
-                <span class="text-xl font-bold tracking-wide text-gray-800">~ SiDomar ~</span>
+            <div class="flex items-center justify-center flex-1">
+                <img src="indomaret.PNG" alt="Indomaret" class="h-8 object-contain max-w-[140px]" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'120\' height=\'30\' viewBox=\'0 0 120 30\'><rect width=\'120\' height=\'30\' fill=\'%230064D2\'/><text x=\'50%25\' y=\'55%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'white\' font-family=\'sans-serif\' font-weight=\'bold\' font-size=\'12\'>INDOMARET</text></svg>';">
             </div>
             <button onclick="toggleSidebar()" class="p-1 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 focus:outline-none">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1037,8 +1032,6 @@
     <main id="main-content" class="flex-1 p-4 md:p-8 overflow-y-auto">
         
         <div id="page-beranda" class="app-card">
-            <h2 class="text-center text-black font-bold text-xl md:text-2xl mb-4 tracking-tight">CEK HARGA</h2>
-
             <div id="scanner-container">
                 <button class="btn-close-scanner" onclick="stopScanner()">Tutup Kamera</button>
                 <div id="interactive-reader" style="width: 100%;"></div>
@@ -1070,8 +1063,6 @@
         </div>
 
         <div id="page-itt" class="app-card hidden">
-            <h2 class="text-center text-black font-bold text-xl md:text-2xl mb-4 tracking-tight">SCAN ITT</h2>
-            
             <div class="filter-group">
                 <div class="filter-item">
                     <label for="keywordItt">Cari Produk</label>
@@ -1109,8 +1100,6 @@
         </div>
 
         <div id="page-plano" class="app-card hidden">
-            <h2 class="text-center text-black font-bold text-xl md:text-2xl mb-4 tracking-tight">PLANOGRAM</h2>
-
             <div class="filter-group">
                 <div class="filter-item">
                     <label for="filterNamaRakPlano">Pilih Modis</label>
@@ -1144,8 +1133,6 @@
         </div>
 
         <div id="page-qrcode" class="app-card hidden">
-            <h2 class="text-center text-black font-bold text-xl md:text-2xl mb-4 tracking-tight">BUAT QRCODE</h2>
-
             <div class="filter-group">
                 <div class="filter-item">
                     <label for="file-input">Input file .txt untuk buat QRCode :</label>
@@ -1268,6 +1255,8 @@
             const navPlano = document.getElementById('nav-plano');
             const navQrcode = document.getElementById('nav-qrcode');
 
+            const headerTitle = document.getElementById('header-title');
+
             pageBeranda.classList.add('hidden');
             pageItt.classList.add('hidden');
             pagePlano.classList.add('hidden');
@@ -1284,17 +1273,21 @@
             if (tabName === 'beranda') {
                 pageBeranda.classList.remove('hidden');
                 navBeranda.className = activeClass;
+                if (headerTitle) headerTitle.innerText = "CEK HARGA";
             } else if (tabName === 'itt') {
                 pageItt.classList.remove('hidden');
                 navItt.className = activeClass;
+                if (headerTitle) headerTitle.innerText = "SCAN ITT";
                 if (!isDataLoadedItt) loadAllDataItt();
             } else if (tabName === 'plano') {
                 pagePlano.classList.remove('hidden');
                 navPlano.className = activeClass;
+                if (headerTitle) headerTitle.innerText = "PLANOGRAM";
                 if (!isDataLoadedPlano) loadAllDataPlano();
             } else if (tabName === 'qrcode') {
                 pageQrcode.classList.remove('hidden');
                 navQrcode.className = activeClass;
+                if (headerTitle) headerTitle.innerText = "BUAT QRCODE";
             }
 
             toggleSidebar();
