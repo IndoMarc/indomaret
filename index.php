@@ -1278,12 +1278,10 @@
                 pageItt.classList.remove('hidden');
                 navItt.className = activeClass;
                 if (headerTitle) headerTitle.innerText = "SCAN ITT";
-                if (!isDataLoadedItt) loadAllDataItt();
             } else if (tabName === 'plano') {
                 pagePlano.classList.remove('hidden');
                 navPlano.className = activeClass;
                 if (headerTitle) headerTitle.innerText = "PLANOGRAM";
-                if (!isDataLoadedPlano) loadAllDataPlano();
             } else if (tabName === 'qrcode') {
                 pageQrcode.classList.remove('hidden');
                 navQrcode.className = activeClass;
@@ -1293,7 +1291,13 @@
             toggleSidebar();
         }
 
-        let db = { barcode: [], prodmast: [], promo: [] };
+        let db = { 
+            barcodeMap: new Map(), 
+            prodmast: [], 
+            promo: [],
+            rakMap: new Map()
+        };
+        let isDataLoaded = false;
         let searchResults = []; 
         let currentPage = 1;
         const itemsPerPage = 10;
@@ -1310,34 +1314,130 @@
         const formatter = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 });
 
         document.addEventListener('DOMContentLoaded', async () => {
-            const urlBarcode = 'UGD_BARCODE.CSV';
-            const urlProdmast = 'UGD_PRODMAST.CSV';
-            const urlPromo = 'UGD_promo_matriks.CSV';
+            await initAppDatabase();
+        });
 
+        async function initAppDatabase() {
+            if (isDataLoaded) return;
+            const timestamp = Date.now();
             try {
-                const [resBarcode, resProdmast, resPromo] = await Promise.all([
-                    fetch(urlBarcode),
-                    fetch(urlProdmast),
-                    fetch(urlPromo)
+                const [resBarcode, resProdmast, resPromo, resRak] = await Promise.all([
+                    fetch(`UGD_BARCODE.CSV?t=${timestamp}`),
+                    fetch(`UGD_PRODMAST.CSV?t=${timestamp}`),
+                    fetch(`UGD_promo_matriks.CSV?t=${timestamp}`),
+                    fetch(`UGD_RAK.CSV?t=${timestamp}`).catch(() => null)
                 ]);
 
                 if (!resBarcode.ok || !resProdmast.ok || !resPromo.ok) {
                     throw new Error("Gagal mengunduh database.");
                 }
 
-                db.barcode = parseCSV(await resBarcode.text());
+                const barcodeText = await resBarcode.text();
+                parseBarcodeToMap(barcodeText);
+
                 db.prodmast = parseCSV(await resProdmast.text());
                 db.promo = parseCSV(await resPromo.text());
 
+                if (resRak && resRak.ok) {
+                    parseRakToMap(await resRak.text());
+                }
+
+                isDataLoaded = true;
                 document.getElementById('loadingDb').style.display = "none";
                 document.getElementById('searchWrapper').style.display = "flex";
                 document.getElementById('resultArea').style.display = "block"; 
+                document.getElementById('statusMessageItt').textContent = 'Berhasil memuat data ...';
+                document.getElementById('statusMessagePlano').textContent = 'Berhasil memuat data ...';
                 keywordInput.focus();
             } catch (err) {
                 console.error(err);
                 document.getElementById('loadingDb').innerText = "Gagal memuat data ...";
             }
-        });
+        }
+
+        function parseBarcodeToMap(text) {
+            const lines = text.split(/\r?\n/);
+            if (lines.length < 2) return;
+            const headers = lines[0].split('|').map(h => h.trim().toUpperCase());
+            const idxPlu = headers.indexOf('PLU');
+            const idxBarcd = headers.indexOf('BARCD');
+            if (idxPlu === -1 || idxBarcd === -1) return;
+
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                const cols = line.split('|');
+                const plu = cols[idxPlu] ? cols[idxPlu].trim() : '';
+                const barcd = cols[idxBarcd] ? cols[idxBarcd].trim() : '';
+                if (plu && barcd) {
+                    if (!db.barcodeMap.has(plu)) db.barcodeMap.set(plu, []);
+                    db.barcodeMap.get(plu).push(barcd);
+                }
+            }
+        }
+
+        function parseRakToMap(text) {
+            const lines = text.split(/\r?\n/);
+            if (lines.length < 2) return;
+            const headers = lines[0].split('|').map(h => h.trim().toUpperCase());
+            const idxPlumd = headers.indexOf('PLUMD');
+            const idxNamaRak = headers.indexOf('NAMA_RAK');
+            const idxNoShelf = headers.indexOf('NOSHELF');
+            const idxKiriKanan = headers.indexOf('KIRIKANAN');
+            if (idxPlumd === -1) return;
+
+            const setNamaRak = new Set();
+            const setNoShelf = new Set();
+
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                const cols = line.split('|');
+                const plumd = cols[idxPlumd] ? cols[idxPlumd].trim() : '';
+                const namaRak = idxNamaRak !== -1 && cols[idxNamaRak] ? cols[idxNamaRak].trim() : '-';
+                const noShelf = idxNoShelf !== -1 && cols[idxNoShelf] ? cols[idxNoShelf].trim() : '-';
+                const kiriKanan = idxKiriKanan !== -1 && cols[idxKiriKanan] ? cols[idxKiriKanan].trim() : '-';
+
+                if (namaRak && namaRak !== '-') setNamaRak.add(namaRak);
+                if (noShelf && noShelf !== '-') setNoShelf.add(noShelf);
+
+                if (plumd) {
+                    if (!db.rakMap.has(plumd)) db.rakMap.set(plumd, []);
+                    db.rakMap.get(plumd).push({ namaRak, noShelf, kiriKanan });
+                }
+            }
+            populateDropdowns(setNamaRak, setNoShelf);
+        }
+
+        function populateDropdowns(setNamaRak, setNoShelf) {
+            const arrNamaRak = Array.from(setNamaRak).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+            const arrNoShelf = Array.from(setNoShelf).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+            
+            ['Itt', 'Plano'].forEach(type => {
+                const selectNamaRak = document.getElementById(`filterNamaRak${type}`);
+                const selectDariShelf = document.getElementById(`filterDariShelf${type}`);
+                const selectSampaiShelf = document.getElementById(`filterSampaiShelf${type}`);
+
+                arrNamaRak.forEach(rak => {
+                    const opt = document.createElement('option');
+                    opt.value = rak;
+                    opt.textContent = rak;
+                    selectNamaRak.appendChild(opt);
+                });
+
+                arrNoShelf.forEach(shelf => {
+                    const optDari = document.createElement('option');
+                    optDari.value = shelf;
+                    optDari.textContent = shelf;
+                    selectDariShelf.appendChild(optDari);
+
+                    const optSampai = document.createElement('option');
+                    optSampai.value = shelf;
+                    optSampai.textContent = shelf;
+                    selectSampaiShelf.appendChild(optSampai);
+                });
+            });
+        }
 
         function parseCSV(text) {
             const lines = text.split(/\r?\n/).filter(line => line.trim() !== "");
@@ -1500,9 +1600,10 @@
             currentPage = 1;
 
             const matchedPLUs = new Set();
-            db.barcode.forEach(i => {
-                if ((i.BARCD || "").toUpperCase().includes(query) || (i.PLU || "").toUpperCase().includes(query)) {
-                    matchedPLUs.add(i.PLU);
+            
+            db.barcodeMap.forEach((barcodes, plu) => {
+                if (plu.includes(query) || barcodes.some(b => b.includes(query))) {
+                    matchedPLUs.add(plu);
                 }
             });
 
@@ -1544,117 +1645,8 @@
 
         keywordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') cariData(); });
 
-        const prodmastUrlItt = 'UGD_PRODMAST.CSV';
-        const barcodeUrlItt = 'UGD_BARCODE.CSV';
-        const rakUrlItt = 'UGD_RAK.CSV';
-        
-        let csvDataLinesItt = [];
-        let barcodeMapItt = new Map();
-        let rakMapItt = new Map();
-        let isDataLoadedItt = false;
-        
         let allResultsItt = [];
         let currentPageItt = 0;
-
-        async function loadAllDataItt() {
-            try {
-                document.getElementById('statusMessageItt').textContent = 'Mengunduh data barcode...';
-                const barcodeResponse = await fetch(barcodeUrlItt + "?t=" + Date.now());
-                if (!barcodeResponse.ok) throw new Error('Gagal mengambil data Barcode');
-                const barcodeText = await barcodeResponse.text();
-                parseBarcodeDataItt(barcodeText);
-
-                document.getElementById('statusMessageItt').textContent = 'Mengunduh data lokasi rak...';
-                const rakResponse = await fetch(rakUrlItt + "?t=" + Date.now());
-                if (!rakResponse.ok) throw new Error('Gagal mengambil data Rak');
-                const rakText = await rakResponse.text();
-                parseRakDataItt(rakText);
-
-                document.getElementById('statusMessageItt').textContent = 'Mengunduh data produk...';
-                const prodmastResponse = await fetch(prodmastUrlItt + "?t=" + Date.now());
-                if (!prodmastResponse.ok) throw new Error('Gagal mengambil data Produk');
-                const prodmastText = await prodmastResponse.text();
-                csvDataLinesItt = prodmastText.split(/\r?\n/);
-
-                isDataLoadedItt = true;
-                document.getElementById('statusMessageItt').textContent = 'Berhasil memuat data ...';
-            } catch (error) {
-                document.getElementById('statusMessageItt').textContent = 'Error memuat data: ' + error.message;
-            }
-        }
-
-        function parseBarcodeDataItt(text) {
-            const lines = text.split(/\r?\n/);
-            if (lines.length === 0) return;
-            const headers = lines[0].split('|');
-            const indexPlu = headers.indexOf('PLU');
-            const indexBarcd = headers.indexOf('BARCD');
-            if (indexPlu === -1 || indexBarcd === -1) return;
-            for (let i = 1; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-                const columns = line.split('|');
-                const plu = columns[indexPlu]? columns[indexPlu].trim() : '';
-                const barcd = columns[indexBarcd]? columns[indexBarcd].trim() : '';
-                if (plu && barcd) {
-                    if (!barcodeMapItt.has(plu)) barcodeMapItt.set(plu, []);
-                    barcodeMapItt.get(plu).push(barcd);
-                }
-            }
-        }
-
-        function parseRakDataItt(text) {
-            const lines = text.split(/\r?\n/);
-            if (lines.length === 0) return;
-            const headers = lines[0].split('|');
-            const indexPlumd = headers.indexOf('PLUMD');
-            const indexNamaRak = headers.indexOf('NAMA_RAK');
-            const indexNoShelf = headers.indexOf('NOSHELF');
-            const indexKiriKanan = headers.indexOf('KIRIKANAN');
-            if (indexPlumd === -1) return;
-            const setNamaRak = new Set();
-            const setNoShelf = new Set();
-            for (let i = 1; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-                const columns = line.split('|');
-                const plumd = columns[indexPlumd]? columns[indexPlumd].trim() : '';
-                const namaRak = indexNamaRak!== -1 && columns[indexNamaRak]? columns[indexNamaRak].trim() : '-';
-                const noShelf = indexNoShelf!== -1 && columns[indexNoShelf]? columns[indexNoShelf].trim() : '-';
-                const kiriKanan = indexKiriKanan!== -1 && columns[indexKiriKanan]? columns[indexKiriKanan].trim() : '-';
-                if (namaRak && namaRak!== '-') setNamaRak.add(namaRak);
-                if (noShelf && noShelf!== '-') setNoShelf.add(noShelf);
-                if (plumd) {
-                    if (!rakMapItt.has(plumd)) rakMapItt.set(plumd, []);
-                    rakMapItt.get(plumd).push({ namaRak, noShelf, kiriKanan });
-                }
-            }
-            populateDropdownsItt(setNamaRak, setNoShelf);
-        }
-
-        function populateDropdownsItt(setNamaRak, setNoShelf) {
-            const arrNamaRak = Array.from(setNamaRak).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-            const arrNoShelf = Array.from(setNoShelf).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-            const selectNamaRak = document.getElementById('filterNamaRakItt');
-            const selectDariShelf = document.getElementById('filterDariShelfItt');
-            const selectSampaiShelf = document.getElementById('filterSampaiShelfItt');
-            arrNamaRak.forEach(rak => {
-                const opt = document.createElement('option');
-                opt.value = rak;
-                opt.textContent = rak;
-                selectNamaRak.appendChild(opt);
-            });
-            arrNoShelf.forEach(shelf => {
-                const optDari = document.createElement('option');
-                optDari.value = shelf;
-                optDari.textContent = shelf;
-                selectDariShelf.appendChild(optDari);
-                const optSampai = document.createElement('option');
-                optSampai.value = shelf;
-                optSampai.textContent = shelf;
-                selectSampaiShelf.appendChild(optSampai);
-            });
-        }
 
         async function searchDataItt() {
             const keywordRaw = document.getElementById('keywordItt').value.trim();
@@ -1666,28 +1658,20 @@
             
             closeModalItt();
             
-            if (!isDataLoadedItt) {
+            if (!isDataLoaded) {
                 statusMessage.textContent = 'Sedang memuat data, silakan tunggu...';
-                await loadAllDataItt();
-                if (!isDataLoadedItt) return;
-            }
-            statusMessage.textContent = 'Mencari data...';
-            const headers = csvDataLinesItt[0].split('|');
-            const indexPlumd = headers.indexOf('PLUMD');
-            const indexDesc2 = headers.indexOf('DESC2');
-            if (indexPlumd === -1 || indexDesc2 === -1) {
-                statusMessage.textContent = 'Kolom PLUMD atau DESC2 tidak ditemukan.';
-                return;
+                await initAppDatabase();
+                if (!isDataLoaded) return;
             }
             
+            statusMessage.textContent = 'Mencari data...';
             allResultsItt = [];
-            for (let i = 1; i < csvDataLinesItt.length; i++) {
-                const line = csvDataLinesItt[i].trim();
-                if (!line) continue;
-                const columns = line.split('|');
-                const plumd = columns[indexPlumd]? columns[indexPlumd].trim() : '';
-                const desc2 = columns[indexDesc2]? columns[indexDesc2].trim() : '';
-                const barcodes = barcodeMapItt.get(plumd) || [];
+
+            for (let i = 0; i < db.prodmast.length; i++) {
+                const item = db.prodmast[i];
+                const plumd = item.PLUMD || '';
+                const desc2 = item.DESC2 || '';
+                const barcodes = db.barcodeMap.get(plumd) || [];
                 
                 let matchSearch = searchTerms.length === 0;
                 if (searchTerms.length > 0) {
@@ -1698,10 +1682,10 @@
                 }
                 
                 if (matchSearch) {
-                    const rakList = rakMapItt.get(plumd) || [];
+                    const rakList = db.rakMap.get(plumd) || [];
                     if (rakList.length > 0) {
                         rakList.forEach(rakInfo => {
-                            if (filterNamaRak && rakInfo.namaRak!== filterNamaRak) return;
+                            if (filterNamaRak && rakInfo.namaRak !== filterNamaRak) return;
                             if (filterDariShelf && rakInfo.noShelf.localeCompare(filterDariShelf, undefined, { numeric: true }) < 0) return;
                             if (filterSampaiShelf && rakInfo.noShelf.localeCompare(filterSampaiShelf, undefined, { numeric: true }) > 0) return;
                             allResultsItt.push({ 
@@ -1714,7 +1698,7 @@
                             });
                         });
                     } else {
-                        if (!filterNamaRak &&!filterDariShelf &&!filterSampaiShelf) {
+                        if (!filterNamaRak && !filterDariShelf && !filterSampaiShelf) {
                             allResultsItt.push({ 
                                 plumd, 
                                 barcodes, 
@@ -1730,9 +1714,9 @@
             
             allResultsItt.sort((a, b) => {
                 const compareRak = a.namaRak.localeCompare(b.namaRak, undefined, { numeric: true, sensitivity: 'base' });
-                if (compareRak!== 0) return compareRak;
+                if (compareRak !== 0) return compareRak;
                 const compareShelf = a.noShelf.localeCompare(b.noShelf, undefined, { numeric: true, sensitivity: 'base' });
-                if (compareShelf!== 0) return compareShelf;
+                if (compareShelf !== 0) return compareShelf;
                 return a.kiriKanan.localeCompare(b.kiriKanan, undefined, { numeric: true, sensitivity: 'base' });
             });
 
@@ -1769,7 +1753,7 @@
         function updateCardContentItt() {
             const data = allResultsItt[currentPageItt];
             const barcodeId = `barcode-itt-${currentPageItt}`;
-            const mainBarcode = data.barcodes.length > 0? data.barcodes[0] : '-';
+            const mainBarcode = data.barcodes.length > 0 ? data.barcodes[0] : '-';
             const hasMultipleBarcodes = data.barcodes.length > 1;
             const imageUrl = `https://cdn-klik.klikindomaret.com/klik-catalog/product/${data.plumd}_1.jpg`;
             
@@ -1817,7 +1801,7 @@
                 </div>
             `;
             
-            if (mainBarcode!== '-') {
+            if (mainBarcode !== '-') {
                 try {
                     JsBarcode(`#${barcodeId}`, mainBarcode, {
                         format: "CODE128",
@@ -1881,127 +1865,15 @@
             closeModalItt();
             allResultsItt = [];
             currentPageItt = 0;
-            if (isDataLoadedItt) {
-                document.getElementById('statusMessageItt').textContent = 'Berhasil memuat data ...';
-            } else {
-                document.getElementById('statusMessageItt').textContent = '';
-            }
+            document.getElementById('statusMessageItt').textContent = isDataLoaded ? 'Berhasil memuat data ...' : '';
         }
 
         document.getElementById('modalOverlayItt').addEventListener('click', function(e) {
             if (e.target === this) closeModalItt();
         });
 
-        const prodmastUrlPlano = 'UGD_PRODMAST.CSV';
-        const barcodeUrlPlano = 'UGD_BARCODE.CSV';
-        const rakUrlPlano = 'UGD_RAK.CSV';
-        
-        let csvDataLinesPlano = [];
-        let barcodeMapPlano = new Map();
-        let rakMapPlano = new Map();
-        let isDataLoadedPlano = false;
         let allResultsPlano = [];
         let currentScalePlano = 1;
-
-        async function loadAllDataPlano() {
-            try {
-                document.getElementById('statusMessagePlano').textContent = 'Mengunduh data barcode...';
-                const barcodeResponse = await fetch(barcodeUrlPlano + "?t=" + Date.now());
-                if (!barcodeResponse.ok) throw new Error('Gagal mengambil data Barcode');
-                const barcodeText = await barcodeResponse.text();
-                parseBarcodeDataPlano(barcodeText);
-
-                document.getElementById('statusMessagePlano').textContent = 'Mengunduh data lokasi rak...';
-                const rakResponse = await fetch(rakUrlPlano + "?t=" + Date.now());
-                if (!rakResponse.ok) throw new Error('Gagal mengambil data Rak');
-                const rakText = await rakResponse.text();
-                parseRakDataPlano(rakText);
-
-                document.getElementById('statusMessagePlano').textContent = 'Mengunduh data produk...';
-                const prodmastResponse = await fetch(prodmastUrlPlano + "?t=" + Date.now());
-                if (!prodmastResponse.ok) throw new Error('Gagal mengambil data Produk');
-                const prodmastText = await prodmastResponse.text();
-                csvDataLinesPlano = prodmastText.split(/\r?\n/);
-
-                isDataLoadedPlano = true;
-                document.getElementById('statusMessagePlano').textContent = 'Berhasil memuat data ...';
-            } catch (error) {
-                document.getElementById('statusMessagePlano').textContent = 'Error memuat data: ' + error.message;
-            }
-        }
-
-        function parseBarcodeDataPlano(text) {
-            const lines = text.split(/\r?\n/);
-            if (lines.length === 0) return;
-            const headers = lines[0].split('|');
-            const indexPlu = headers.indexOf('PLU');
-            const indexBarcd = headers.indexOf('BARCD');
-            if (indexPlu === -1 || indexBarcd === -1) return;
-            for (let i = 1; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-                const columns = line.split('|');
-                const plu = columns[indexPlu]? columns[indexPlu].trim() : '';
-                const barcd = columns[indexBarcd]? columns[indexBarcd].trim() : '';
-                if (plu && barcd) {
-                    if (!barcodeMapPlano.has(plu)) barcodeMapPlano.set(plu, []);
-                    barcodeMapPlano.get(plu).push(barcd);
-                }
-            }
-        }
-
-        function parseRakDataPlano(text) {
-            const lines = text.split(/\r?\n/);
-            if (lines.length === 0) return;
-            const headers = lines[0].split('|');
-            const indexPlumd = headers.indexOf('PLUMD');
-            const indexNamaRak = headers.indexOf('NAMA_RAK');
-            const indexNoShelf = headers.indexOf('NOSHELF');
-            const indexKiriKanan = headers.indexOf('KIRIKANAN');
-            if (indexPlumd === -1) return;
-            const setNamaRak = new Set();
-            const setNoShelf = new Set();
-            for (let i = 1; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-                const columns = line.split('|');
-                const plumd = columns[indexPlumd]? columns[indexPlumd].trim() : '';
-                const namaRak = indexNamaRak!== -1 && columns[indexNamaRak]? columns[indexNamaRak].trim() : '-';
-                const noShelf = indexNoShelf!== -1 && columns[indexNoShelf]? columns[indexNoShelf].trim() : '-';
-                const kiriKanan = indexKiriKanan!== -1 && columns[indexKiriKanan]? columns[indexKiriKanan].trim() : '-';
-                if (namaRak && namaRak!== '-') setNamaRak.add(namaRak);
-                if (noShelf && noShelf!== '-') setNoShelf.add(noShelf);
-                if (plumd) {
-                    if (!rakMapPlano.has(plumd)) rakMapPlano.set(plumd, []);
-                    rakMapPlano.get(plumd).push({ namaRak, noShelf, kiriKanan });
-                }
-            }
-            populateDropdownsPlano(setNamaRak, setNoShelf);
-        }
-
-        function populateDropdownsPlano(setNamaRak, setNoShelf) {
-            const arrNamaRak = Array.from(setNamaRak).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-            const arrNoShelf = Array.from(setNoShelf).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-            const selectNamaRak = document.getElementById('filterNamaRakPlano');
-            const selectDariShelf = document.getElementById('filterDariShelfPlano');
-            const selectSampaiShelf = document.getElementById('filterSampaiShelfPlano');
-            arrNamaRak.forEach(rak => {
-                const opt = document.createElement('option');
-                opt.value = rak;
-                opt.textContent = rak;
-                selectNamaRak.appendChild(opt);
-            });
-            arrNoShelf.forEach(shelf => {
-                const optDari = document.createElement('option');
-                optDari.value = shelf;
-                optDari.textContent = shelf;
-                selectDariShelf.appendChild(optDari);
-                const optSampai = document.createElement('option');
-                optSampai.value = shelf;
-                optSampai.textContent = shelf;
-                selectSampaiShelf.appendChild(optSampai);
-            });
-        }
 
         async function searchDataPlano() {
             const filterNamaRak = document.getElementById('filterNamaRakPlano').value;
@@ -2009,32 +1881,24 @@
             const filterSampaiShelf = document.getElementById('filterSampaiShelfPlano').value;
             const statusMessage = document.getElementById('statusMessagePlano');
             
-            if (!isDataLoadedPlano) {
+            if (!isDataLoaded) {
                 statusMessage.textContent = 'Sedang memuat data, silakan tunggu...';
-                await loadAllDataPlano();
-                if (!isDataLoadedPlano) return;
+                await initAppDatabase();
+                if (!isDataLoaded) return;
             }
+
             statusMessage.textContent = 'Mencari data...';
-            const headers = csvDataLinesPlano[0].split('|');
-            const indexPlumd = headers.indexOf('PLUMD');
-            const indexSingkatan = headers.indexOf('SINGKATAN');
-            if (indexPlumd === -1 || indexSingkatan === -1) {
-                statusMessage.textContent = 'Kolom PLUMD atau SINGKATAN tidak ditemukan.';
-                return;
-            }
-            
             allResultsPlano = [];
-            for (let i = 1; i < csvDataLinesPlano.length; i++) {
-                const line = csvDataLinesPlano[i].trim();
-                if (!line) continue;
-                const columns = line.split('|');
-                const plumd = columns[indexPlumd]? columns[indexPlumd].trim() : '';
-                const singkatan = columns[indexSingkatan]? columns[indexSingkatan].trim() : '';
+
+            for (let i = 0; i < db.prodmast.length; i++) {
+                const item = db.prodmast[i];
+                const plumd = item.PLUMD || '';
+                const singkatan = item.SINGKATAN || item.DESC2 || '';
                 
-                const rakList = rakMapPlano.get(plumd) || [];
+                const rakList = db.rakMap.get(plumd) || [];
                 if (rakList.length > 0) {
                     rakList.forEach(rakInfo => {
-                        if (filterNamaRak && rakInfo.namaRak!== filterNamaRak) return;
+                        if (filterNamaRak && rakInfo.namaRak !== filterNamaRak) return;
                         if (filterDariShelf && rakInfo.noShelf.localeCompare(filterDariShelf, undefined, { numeric: true }) < 0) return;
                         if (filterSampaiShelf && rakInfo.noShelf.localeCompare(filterSampaiShelf, undefined, { numeric: true }) > 0) return;
                         allResultsPlano.push({ 
@@ -2046,7 +1910,7 @@
                         });
                     });
                 } else {
-                    if (!filterNamaRak &&!filterDariShelf &&!filterSampaiShelf) {
+                    if (!filterNamaRak && !filterDariShelf && !filterSampaiShelf) {
                         allResultsPlano.push({ 
                             plumd, 
                             singkatan, 
@@ -2173,11 +2037,7 @@
             document.getElementById('filterSampaiShelfPlano').value = '';
             document.getElementById('planogramBoard').innerHTML = '';
             allResultsPlano = [];
-            if (isDataLoadedPlano) {
-                document.getElementById('statusMessagePlano').textContent = 'Silakan pilih filter dan klik Tampilkan.';
-            } else {
-                document.getElementById('statusMessagePlano').textContent = '';
-            }
+            document.getElementById('statusMessagePlano').textContent = isDataLoaded ? 'Silakan pilih filter dan klik Tampilkan.' : '';
         }
 
         const sliderPlano = document.getElementById('modalCanvasPlano');
