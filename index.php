@@ -964,7 +964,7 @@
             <h1 id="header-title" class="text-black font-bold text-lg md:text-xl tracking-tight">CEK HARGA</h1>
         </div>
         
-        <a href="https://stock-opname.wasmer.app/" class="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 focus:outline-none transition-colors" title="Buka Stock Opname">
+        <a href="https://indomarc.github.io/index/" class="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 focus:outline-none transition-colors" title="Buka Stock Opname">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
             </svg>
@@ -1451,14 +1451,66 @@
             });
         }
 
-        function parseTanggal(str, isEnd = false) {
-            if (!str) return null;
-            const parts = str.split(/[\s/:-]+/);
-            if (parts.length < 3) return null;
-            const d = parseInt(parts[0], 10), m = parseInt(parts[1], 10) - 1, y = parseInt(parts[2], 10);
-            let hh = parseInt(parts[3], 10) || 0, mm = parseInt(parts[4], 10) || 0, ss = parseInt(parts[5], 10) || 0;
-            if (isEnd && hh === 0 && mm === 0 && ss === 0) { hh = 23; mm = 59; ss = 59; }
-            return new Date(y, m, d, hh, mm, ss);
+        function cleanNum(v) {
+            if (!v) return 0;
+            return parseFloat(v.toString().replace(/[^0-9.]/g, '')) || 0;
+        }
+
+        function splitVal(s) {
+            if (!s) return [];
+            return s.split('!').filter(v => v.trim() !== "");
+        }
+
+        function parseDate(dateStr) {
+            if (!dateStr) return null;
+            const dateOnly = dateStr.split(" ")[0];
+            let d, m, y;
+            if (dateOnly.includes('/')) {
+                [d, m, y] = dateOnly.split('/');
+            } else if (dateOnly.includes('-')) {
+                [y, m, d] = dateOnly.split('-');
+            } else {
+                return new Date(dateOnly);
+            }
+            return new Date(y, m - 1, d);
+        }
+
+        function isPromoActive(startStr, endStr) {
+            const start = parseDate(startStr);
+            const end = parseDate(endStr);
+            if (!start || !end) return false;
+            const now = new Date();
+            now.setHours(0,0,0,0);
+            return now >= start && now <= end;
+        }
+
+        function HitungPotongan(targetPLU) {
+            let totalPotongan = 0;
+
+            db.promo.forEach(p => {
+                const lus = splitVal(p.ITEMSYARATORI || "");
+                const lP = splitVal(p.POTONGANRPTARGET || "");
+                const lM = splitVal(p.QTYSYARATMIN || "");
+
+                const pot = cleanNum(lP[0]);
+                const min = cleanNum(lM[0]);
+
+                lus.forEach(pluCode => {
+                    const purePlu = pluCode.replace("PLU=", "").trim();
+                    if (purePlu === targetPLU) {
+                        const isPromoValid = isPromoActive(p.TANGGALAWAL, p.TANGGALAKHIR);
+                        const isDirectDiscount = min === 1 && pot > 0;
+                        const meks = p.MEKANISME || "";
+                        const isNonDiscount = nonDiscountKeywords.some(k => meks.toUpperCase().includes(k));
+
+                        if (isPromoValid && isDirectDiscount && !isNonDiscount) {
+                            totalPotongan += pot;
+                        }
+                    }
+                });
+            });
+
+            return totalPotongan;
         }
 
         function formatIDR(val) { return formatter.format(val); }
@@ -1621,19 +1673,10 @@
                 return; 
             }
 
-            const now = new Date();
             matchedPLUs.forEach(targetPLU => {
                 const prod = db.prodmast.find(i => i.PLUMD === targetPLU);
-                let hargaNormal = prod ? parseFloat(prod.PRICE) : 0;
-                let pots = 0;
-
-                db.promo.filter(i => (i.ITEMSYARATORI || "").includes("PLU=" + targetPLU)).forEach(i => {
-                    const isAktif = (now >= parseTanggal(i.TANGGALAWAL, false) && now <= parseTanggal(i.TANGGALAKHIR, true));
-                    const isNonDiscount = nonDiscountKeywords.some(k => i.MEKANISME.toUpperCase().includes(k));
-                    if (isAktif && parseInt(i.QTYSYARATMIN, 10) === 1 && !isNonDiscount) {
-                        pots += parseFloat(i.POTONGANRPTARGET.replace(/[^\d.-]/g, '')) || 0;
-                    }
-                });
+                let hargaNormal = prod ? (parseFloat(prod.PRICE) || 0) : 0;
+                let pots = HitungPotongan(targetPLU);
 
                 searchResults.push({ targetPLU, prod, hargaNormal, potonganSatuan: pots });
             });
