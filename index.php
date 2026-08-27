@@ -992,7 +992,7 @@
                         <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                         </svg>
-                        <span>Cek Harga</span>
+                        <span>Cek Harga PLU</span>
                     </button>
                 </li>
                 <li>
@@ -1000,7 +1000,7 @@
                         <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7V5a2 2 0 012-2h2m10 0h2a2 2 0 012 2v2m0 10v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2m5-8v4m4-4v4m4-4v4"></path>
                         </svg>
-                        <span>Scan ITT</span>
+                        <span>Scan ITT PJR</span>
                     </button>
                 </li>
                 <li>
@@ -1008,7 +1008,7 @@
                         <svg class="w-6 h-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16M7 6v12M17 6v12"></path>
                         </svg>
-                        <span>Planogram</span>
+                        <span>Cek Planogram</span>
                     </button>
                 </li>
                 <li>
@@ -1024,7 +1024,7 @@
 
         <div class="pt-4 mt-auto border-t border-gray-200 text-center">
             <div id="realtime-clock" class="text-xs font-medium text-gray-500 bg-gray-50 py-2 px-3 rounded-lg border border-gray-200 leading-tight">
-                Memuat waktu...
+                Memuat waktu ...
             </div>
         </div>
     </aside>
@@ -1273,15 +1273,15 @@
             if (tabName === 'beranda') {
                 pageBeranda.classList.remove('hidden');
                 navBeranda.className = activeClass;
-                if (headerTitle) headerTitle.innerText = "CEK HARGA";
+                if (headerTitle) headerTitle.innerText = "CEK HARGA PLU";
             } else if (tabName === 'itt') {
                 pageItt.classList.remove('hidden');
                 navItt.className = activeClass;
-                if (headerTitle) headerTitle.innerText = "SCAN ITT";
+                if (headerTitle) headerTitle.innerText = "SCAN ITT PJR";
             } else if (tabName === 'plano') {
                 pagePlano.classList.remove('hidden');
                 navPlano.className = activeClass;
-                if (headerTitle) headerTitle.innerText = "PLANOGRAM";
+                if (headerTitle) headerTitle.innerText = "CEK PLANOGRAM";
             } else if (tabName === 'qrcode') {
                 pageQrcode.classList.remove('hidden');
                 navQrcode.className = activeClass;
