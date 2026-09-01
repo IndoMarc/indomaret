@@ -1292,8 +1292,11 @@
         9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
     ];
 
-    $selected_bulan = isset($_REQUEST['bulan']) ? intval($_REQUEST['bulan']) : 8;
-    $selected_tahun = isset($_REQUEST['tahun']) ? intval($_REQUEST['tahun']) : 2026;
+    $current_month = (int) date('n');
+    $current_year = (int) date('Y');
+
+    $selected_bulan = isset($_REQUEST['bulan']) ? intval($_REQUEST['bulan']) : $current_month;
+    $selected_tahun = isset($_REQUEST['tahun']) ? intval($_REQUEST['tahun']) : $current_year;
 
     $prev_bulan = $selected_bulan - 1;
     $prev_tahun = $selected_tahun;
