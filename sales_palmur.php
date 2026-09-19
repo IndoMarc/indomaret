@@ -1,41 +1,29 @@
 <?php
 $host   = 'db.fr-roub1.bengt.wasmernet.com';
-$port   = '20184';
-$dbname = 'stock_opname';
-$dbuser = 'user_a2e7c23a';
-$dbpass = 'pw_XVc32h58LGUKszLr1XCGg8R8FVDzTAcy';
+$port   = '20184';$dbname = 'stock_opname';
+$dbuser = 'user_a2e7c23a';$dbpass = 'pw_XVc32h58LGUKszLr1XCGg8R8FVDzTAcy';
 
-$message = '';
-$days = ['Kamis', 'Jumat', 'Sabtu', 'Minggu', 'Senin', 'Selasa', 'Rabu'];
+$message = '';$days = ['Kamis', 'Jumat', 'Sabtu', 'Minggu', 'Senin', 'Selasa', 'Rabu'];
 
 try {
     $dsn = "mysql:host=$host;port=$port;dbname=$dbname;charset=utf8mb4";
-    $pdo = new PDO($dsn, $dbuser, $dbpass, [
+    $pdo = new PDO($dsn, $dbuser,$dbpass, [
         PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
 
-    if (isset($_POST['action']) && $_POST['action'] === 'clear') {
-        $pdo->beginTransaction();
-        $pdo->exec("DELETE FROM sales_reports");
-        $pdo->exec("DELETE FROM items");
-        $pdo->commit();
-        $message = '<div class="alert alert-success">Seluruh isi data tabel database berhasil dihapus!</div>';
-    }
-
-    if (isset($_POST['action']) && $_POST['action'] === 'save') {
-        $pdo->beginTransaction();
+    if (isset($_POST['action']) && $_POST['action'] === 'save') {$pdo->beginTransaction();
 
         $pdo->exec("DELETE FROM sales_reports");
         $pdo->exec("DELETE FROM items");
 
-        $stmtItem = $pdo->prepare("INSERT INTO items (slot_item, target_qty) VALUES (:slot_item, :target_qty)");
-        $stmtSales = $pdo->prepare("INSERT INTO sales_reports (item_id, day_name, shift_1, shift_2) VALUES (:item_id, :day_name, :shift_1, :shift_2)");
+        $stmtItem =$pdo->prepare("INSERT INTO items (slot_item, target_qty) VALUES (:slot_item, :target_qty)");
+        $stmtSales =$pdo->prepare("INSERT INTO sales_reports (item_id, day_name, shift_1, shift_2) VALUES (:item_id, :day_name, :shift_1, :shift_2)");
 
         $insertedCount = 0;
 
         if (isset($_POST['items']) && is_array($_POST['items'])) {
-            foreach ($_POST['items'] as $item) {
+            foreach ($_POST['items'] as$item) {
                 $slotItem = trim($item['slot_item'] ?? '');
                 if ($slotItem === '') {
                     continue;
@@ -47,17 +35,15 @@ try {
                     ':slot_item'  => $slotItem,
                     ':target_qty' => $targetQty
                 ]);
-                $itemId = $pdo->lastInsertId();
+                $itemId =$pdo->lastInsertId();
 
-                foreach ($days as $day) {
-                    $shift1 = (int)($item['sales'][$day]['shift_1'] ?? 0);
-                    $shift2 = (int)($item['sales'][$day]['shift_2'] ?? 0);
+                foreach ($days as$day) {
+                    $shift1 = (int)($item['sales'][$day]['shift_1'] ?? 0);$shift2 = (int)($item['sales'][$day]['shift_2'] ?? 0);
 
                     $stmtSales->execute([
                         ':item_id'  => $itemId,
                         ':day_name' => $day,
-                        ':shift_1'  => $shift1,
-                        ':shift_2'  => $shift2,
+                        ':shift_1'  => $shift1,                         ':shift_2'  =>$shift2,
                     ]);
                 }
                 $insertedCount++;
@@ -65,25 +51,23 @@ try {
         }
 
         $pdo->commit();
-        if ($insertedCount > 0) {
-            $message = "<div class='alert alert-success'>Berhasil menyimpan $insertedCount item ke database!</div>";
+        if ($insertedCount > 0) {$message = "<div class='alert alert-success'>Berhasil menyimpan $insertedCount item ke database!</div>";
         } else {
             $message = "<div class='alert alert-danger'>Tidak ada data yang diisi untuk disimpan.</div>";
         }
     }
 
-    $existingItems = $pdo->query("SELECT * FROM items ORDER BY id ASC")->fetchAll();
+    $existingItems =$pdo->query("SELECT * FROM items ORDER BY id ASC")->fetchAll();
     $formData = [];
 
-    foreach ($existingItems as $idx => $item) {
-        $itemId = $item['id'];
-        $salesRows = $pdo->query("SELECT * FROM sales_reports WHERE item_id = $itemId")->fetchAll();
+    foreach ($existingItems as $idx =>$item) {
+        $itemId =$item['id'];
+        $salesRows =$pdo->query("SELECT * FROM sales_reports WHERE item_id = $itemId")->fetchAll();
         
         $salesByDay = [];
-        foreach ($salesRows as $sr) {
+        foreach ($salesRows as$sr) {
             $salesByDay[$sr['day_name']] = [
-                'shift_1' => $sr['shift_1'],
-                'shift_2' => $sr['shift_2']
+                'shift_1' => $sr['shift_1'],                 'shift_2' =>$sr['shift_2']
             ];
         }
 
@@ -95,8 +79,7 @@ try {
     }
 
 } catch (PDOException $e) {
-    if (isset($pdo) && $pdo->inTransaction()) {
-        $pdo->rollBack();
+    if (isset($pdo) && $pdo->inTransaction()) {$pdo->rollBack();
     }
     $message = '<div class="alert alert-danger">Error: ' . htmlspecialchars($e->getMessage()) . '</div>';
 }
@@ -217,8 +200,6 @@ $initialRowCount = max(10, count($formData));
         .btn:active { transform: scale(0.99); }
         .btn-submit { background-color: #16a34a; color: #fff; }
         .btn-submit:hover { background-color: #15803d; }
-        .btn-clear { background-color: #dc2626; color: #fff; }
-        .btn-clear:hover { background-color: #b91c1c; }
         .btn-add { background-color: #0284c7; color: #fff; }
         .btn-add:hover { background-color: #0369a1; }
 
@@ -239,7 +220,6 @@ $initialRowCount = max(10, count($formData));
 
         <div class="btn-group-top">
             <button type="submit" onclick="setAction('save')" class="btn btn-submit">Simpan Data</button>
-            <button type="button" onclick="confirmClear()" class="btn btn-clear">Hapus Semua Data</button>
         </div>
 
         <div class="table-responsive">
@@ -248,7 +228,7 @@ $initialRowCount = max(10, count($formData));
                     <tr>
                         <th rowspan="2" class="sticky-col-1">Slot Item</th>
                         <th rowspan="2" class="sticky-col-2">Target Qty</th>
-                        <?php foreach ($days as $day): ?>
+                        <?php foreach ($days as$day): ?>
                             <th colspan="3" class="bg-day" onclick="copyDayReport('<?= $day ?>')" title="Klik untuk menyalin laporan hari <?= $day ?>"><?= $day ?> 📋</th>
                         <?php endforeach; ?>
                         <th rowspan="2" class="bg-summary">Total Sales</th>
@@ -264,8 +244,7 @@ $initialRowCount = max(10, count($formData));
                 </thead>
                 <tbody id="tableBody">
                     <?php for ($row = 0; $row < $initialRowCount; $row++): 
-                        $itemVal   = $formData[$row]['slot_item'] ?? '';
-                        $targetVal = isset($formData[$row]['target_qty']) && $formData[$row]['target_qty'] > 0 ? $formData[$row]['target_qty'] : '';
+                        $itemVal   =$formData[$row]['slot_item'] ?? '';$targetVal = isset($formData[$row]['target_qty']) && $formData[$row]['target_qty'] > 0 ? $formData[$row]['target_qty'] : '';
                     ?>
                     <tr id="row_<?= $row ?>">
                         <td class="sticky-col-1">
@@ -275,9 +254,9 @@ $initialRowCount = max(10, count($formData));
                             <input type="number" name="items[<?= $row ?>][target_qty]" class="target-qty" id="target_qty_<?= $row ?>" value="<?= $targetVal ?>" placeholder="0" min="0" oninput="calculateRow(<?= $row ?>)">
                         </td>
                         
-                        <?php foreach ($days as $day): 
-                            $s1 = isset($formData[$row]['sales'][$day]['shift_1']) && $formData[$row]['sales'][$day]['shift_1'] > 0 ? $formData[$row]['sales'][$day]['shift_1'] : '';
-                            $s2 = isset($formData[$row]['sales'][$day]['shift_2']) && $formData[$row]['sales'][$day]['shift_2'] > 0 ? $formData[$row]['sales'][$day]['shift_2'] : '';
+                        <?php foreach ($days as$day): 
+                            $s1 = isset($formData[$row]['sales'][$day]['shift_1']) && $formData[$row]['sales'][$day]['shift_1'] > 0 ?$formData[$row]['sales'][$day]['shift_1'] : '';
+                            $s2 = isset($formData[$row]['sales'][$day]['shift_2']) && $formData[$row]['sales'][$day]['shift_2'] > 0 ?$formData[$row]['sales'][$day]['shift_2'] : '';
                         ?>
                             <td><input type="number" name="items[<?= $row ?>][sales][<?= $day ?>][shift_1]" class="shift-input row-<?= $row ?> day-<?= $day ?>" id="shift1_<?= $row ?>_<?= $day ?>" value="<?= $s1 ?>" placeholder="0" min="0" oninput="calculateRow(<?= $row ?>)"></td>
                             <td><input type="number" name="items[<?= $row ?>][sales][<?= $day ?>][shift_2]" class="shift-input row-<?= $row ?> day-<?= $day ?>" id="shift2_<?= $row ?>_<?= $day ?>" value="<?= $s2 ?>" placeholder="0" min="0" oninput="calculateRow(<?= $row ?>)"></td>
@@ -409,13 +388,6 @@ function copyDayReport(day) {
 
 function setAction(actionName) {
     document.getElementById('form_action').value = actionName;
-}
-
-function confirmClear() {
-    if (confirm("Apakah Anda yakin ingin menghapus seluruh isi data pada database?")) {
-        setAction('clear');
-        document.getElementById('mainForm').submit();
-    }
 }
 
 window.onload = function() {
