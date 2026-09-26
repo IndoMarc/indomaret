@@ -244,10 +244,10 @@
             <a href="cek_harga.php" class="menu-item">Cek Harga Produk</a>
             <a href="scan_itt.php" class="menu-item">Scan ITT PJR</a>
             <a href="qr_code.php" class="menu-item">Buat QRCode</a>
-            <a href="https://stock-opname.wasmer.app/" class="menu-item">Stock Opname</a>
-            <a href="sales_harian.php" class="menu-item">Laporan Sales</a>
-            <a href="sales_palmur.php" class="menu-item">Laporan PalMur</a>
-            <a href="http://192.168.137.1:3000/index2.html" class="menu-item full-width" id="btnRekapKas">Buka Rekap Kas</a>
+            <a href="stock_opname.php" class="menu-item">Stock Opname</a>
+            <a href="sales_harian.php" class="menu-item">Laporan Sales Harian</a>
+            <a href="sales_palmur.php" class="menu-item">Laporan Paling Murah</a>
+            <a href="http://192.168.137.1:3000/index2.html" class="menu-item full-width" id="btnRekapKas">Rekapan Kas Induk & Anak</a>
         </div>
 
         <div class="footer-text">
