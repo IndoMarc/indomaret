@@ -268,7 +268,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             margin-top: 15px;
             margin-bottom: 5px;
             flex-wrap: wrap;
@@ -281,16 +281,17 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 8px 12px;
+            padding: 10px 16px;
             border: 1px solid #cbd5e1;
             background-color: #ffffff;
             color: #334155;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 500;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
             text-decoration: none;
             transition: all 0.2s ease;
-            min-width: 36px;
+            min-width: 44px;
+            min-height: 44px;
             cursor: pointer;
         }
 
@@ -304,7 +305,7 @@
             background-color: #0284c7;
             color: #ffffff;
             border-color: #0284c7;
-            font-weight: 600;
+            font-weight: 700;
         }
 
         .pagination-btn.disabled {
@@ -320,7 +321,7 @@
             justify-content: center;
             padding: 8px 4px;
             color: #64748b;
-            font-size: 13px;
+            font-size: 15px;
             font-weight: 600;
         }
 
@@ -823,9 +824,9 @@
                 $query_params['p'] = $current_p - 1;
                 $prev_url = '?' . http_build_query($query_params);
                 if ($current_p > 1) {
-                    echo "<a href='{$prev_url}' class='pagination-btn'><svg class='menu-icon-svg' viewBox='0 0 24 24' style='width:16px;height:16px;'><path d='m15 18-6-6 6-6'/></svg></a>";
+                    echo "<a href='{$prev_url}' class='pagination-btn'><svg class='menu-icon-svg' viewBox='0 0 24 24' style='width:20px;height:20px;'><path d='m15 18-6-6 6-6'/></svg></a>";
                 } else {
-                    echo "<span class='pagination-btn disabled'><svg class='menu-icon-svg' viewBox='0 0 24 24' style='width:16px;height:16px;'><path d='m15 18-6-6 6-6'/></svg></span>";
+                    echo "<span class='pagination-btn disabled'><svg class='menu-icon-svg' viewBox='0 0 24 24' style='width:20px;height:20px;'><path d='m15 18-6-6 6-6'/></svg></span>";
                 }
 
                 if ($total_pages <= 3) {
@@ -873,9 +874,9 @@
                 $query_params['p'] = $current_p + 1;
                 $next_url = '?' . http_build_query($query_params);
                 if ($current_p < $total_pages) {
-                    echo "<a href='{$next_url}' class='pagination-btn'><svg class='menu-icon-svg' viewBox='0 0 24 24' style='width:16px;height:16px;'><path d='m9 18 6-6-6-6'/></svg></a>";
+                    echo "<a href='{$next_url}' class='pagination-btn'><svg class='menu-icon-svg' viewBox='0 0 24 24' style='width:20px;height:20px;'><path d='m9 18 6-6-6-6'/></svg></a>";
                 } else {
-                    echo "<span class='pagination-btn disabled'><svg class='menu-icon-svg' viewBox='0 0 24 24' style='width:16px;height:16px;'><path d='m9 18 6-6-6-6'/></svg></span>";
+                    echo "<span class='pagination-btn disabled'><svg class='menu-icon-svg' viewBox='0 0 24 24' style='width:20px;height:20px;'><path d='m9 18 6-6-6-6'/></svg></span>";
                 }
 
                 echo '</div>';

@@ -147,56 +147,90 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
             transition: border-color 0.2s;
         }
 
-        .search-input:focus, .filter-select:focus {
+        .search-input:focus {
             border-color: #0284c7;
             box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
         }
 
-        .filter-select {
-            width: 100%;
-            padding: 9px 12px;
+        .custom-select-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .custom-select-wrapper select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-color: #ffffff;
             border: 1px solid #cbd5e1;
-            border-radius: 6px;
+            border-radius: 8px;
+            padding: 9px 36px 9px 14px;
             font-size: 14px;
+            font-weight: 600;
             font-family: 'Inter', sans-serif;
-            background-color: #fff;
-            color: #334155;
+            color: #0f172a;
+            cursor: pointer;
             outline: none;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            transition: all 0.2s ease;
+        }
+
+        .custom-select-wrapper select:focus,
+        .custom-select-wrapper select:hover {
+            border-color: #0284c7;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        .custom-select-wrapper::after {
+            content: '';
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-top: 5px solid #64748b;
+            pointer-events: none;
         }
 
         .btn-submit {
             background-color: #0284c7;
             color: #ffffff;
             border: none;
-            border-radius: 6px;
-            padding: 10px;
+            border-radius: 8px;
+            padding: 10px 24px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.2s;
+            box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2);
+            transition: all 0.2s ease;
         }
 
         .btn-submit:hover {
             background-color: #0369a1;
+            box-shadow: 0 4px 6px rgba(2, 132, 199, 0.3);
         }
 
-        .btn-reset {
-            background-color: #f1f5f9;
+        .btn-collapse {
+            background-color: #ffffff;
             color: #475569;
             border: 1px solid #cbd5e1;
             border-radius: 6px;
-            padding: 10px 16px;
-            font-size: 14px;
+            padding: 6px 12px;
+            font-size: 13px;
             font-weight: 600;
-            text-decoration: none;
-            text-align: center;
             cursor: pointer;
             transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .btn-reset:hover {
-            background-color: #e2e8f0;
-            color: #1e293b;
+        .btn-collapse:hover {
+            background-color: #f1f5f9;
+            color: #0f172a;
         }
 
         .error {
@@ -229,6 +263,29 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
             margin-bottom: 16px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .target-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .target-section-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .target-section-content {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .target-section-sales.collapsed .target-section-content {
+            display: none;
         }
 
         .target-inputs-sales {
@@ -274,13 +331,14 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
             align-items: center;
             justify-content: center;
             width: 100%;
+            margin-bottom: 16px;
         }
 
         .table-container-sales {
             background-color: #ffffff;
             border-radius: 12px;
             overflow: auto;
-            max-height: 70vh;
+            max-height: 75vh;
             -webkit-overflow-scrolling: touch;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
             border: 1px solid #e2e8f0;
@@ -524,39 +582,54 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
 
             <form method="POST" action="">
                 <input type="hidden" name="action" value="save_sales">
+                <input type="hidden" name="bulan" value="<?= $selected_bulan ?>">
+                <input type="hidden" name="tahun" value="<?= $selected_tahun ?>">
                 
-                <div class="target-section-sales">
-                    <div class="form-group-sales">
-                        <label>Pilih Periode:</label>
-                        <div style="display: flex; gap: 8px;">
-                            <select name="bulan" form="form_filter_sales" class="filter-select" style="width: auto;">
-                                <?php foreach ($bulan_names as $m_num => $m_name): ?>
-                                    <option value="<?= $m_num ?>" <?= $m_num === $selected_bulan ? 'selected' : '' ?>><?= $m_name ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                            <select name="tahun" form="form_filter_sales" class="filter-select" style="width: auto;">
-                                <?php for ($y = 2025; $y <= 2030; $y++): ?>
-                                    <option value="<?= $y ?>" <?= $y === $selected_tahun ? 'selected' : '' ?>><?= $y ?></option>
-                                <?php endfor; ?>
-                            </select>
-                        </div>
+                <div class="target-section-sales collapsed" id="targetContainerSales">
+                    <div class="target-section-header">
+                        <span class="target-section-title">Pengaturan Periode & Target</span>
+                        <button type="button" class="btn-collapse" id="btnToggleCollapse">
+                            <span id="collapseIcon">&#9660;</span>
+                            <span id="collapseText">Tampilkan</span>
+                        </button>
                     </div>
 
-                    <div class="target-inputs-sales">
+                    <div class="target-section-content">
                         <div class="form-group-sales">
-                            <label>Target SPD:</label>
-                            <input type="text" id="target_spd_input" class="input-currency-sales number-only-sales search-input" name="target_spd" value="<?= number_format($target_spd, 0, ',', '.') ?>">
+                            <label>Pilih Periode:</label>
+                            <div style="display: flex; gap: 8px;">
+                                <div class="custom-select-wrapper">
+                                    <select name="bulan" form="form_filter_sales" onchange="document.getElementById('form_filter_sales').submit();">
+                                        <?php foreach ($bulan_names as $m_num => $m_name): ?>
+                                            <option value="<?= $m_num ?>" <?= $m_num === $selected_bulan ? 'selected' : '' ?>><?= $m_name ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="custom-select-wrapper">
+                                    <select name="tahun" form="form_filter_sales" onchange="document.getElementById('form_filter_sales').submit();">
+                                        <?php for ($y = 2025; $y <= 2030; $y++): ?>
+                                            <option value="<?= $y ?>" <?= $y === $selected_tahun ? 'selected' : '' ?>><?= $y ?></option>
+                                        <?php endfor; ?>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group-sales">
-                            <label>Target Akm Sales:</label>
-                            <input type="text" id="target_akm_sales_input" class="input-currency-sales number-only-sales search-input" name="target_akm_sales" value="<?= number_format($target_akm_sales, 0, ',', '.') ?>">
-                        </div>
-                    </div>
 
-                    <div class="btn-sales-actions">
-                        <button type="submit" class="btn-submit" style="flex: none; width: auto; padding: 9px 18px;">Simpan Ke Database</button>
-                        <button type="submit" form="form_filter_sales" class="btn-reset" style="flex: none; width: auto; padding: 9px 18px; margin: 0;">Tampilkan</button>
+                        <div class="target-inputs-sales">
+                            <div class="form-group-sales">
+                                <label>Target SPD:</label>
+                                <input type="text" id="target_spd_input" class="input-currency-sales number-only-sales search-input" name="target_spd" value="<?= number_format($target_spd, 0, ',', '.') ?>">
+                            </div>
+                            <div class="form-group-sales">
+                                <label>Target Akm Sales:</label>
+                                <input type="text" id="target_akm_sales_input" class="input-currency-sales number-only-sales search-input" name="target_akm_sales" value="<?= number_format($target_akm_sales, 0, ',', '.') ?>">
+                            </div>
+                        </div>
                     </div>
+                </div>
+
+                <div class="btn-sales-actions">
+                    <button type="submit" class="btn-submit">Simpan Data</button>
                 </div>
 
                 <div class="table-container-sales">
@@ -681,6 +754,24 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
                 }
             });
         });
+
+        const btnToggleCollapse = document.getElementById('btnToggleCollapse');
+        const targetContainerSales = document.getElementById('targetContainerSales');
+        const collapseIcon = document.getElementById('collapseIcon');
+        const collapseText = document.getElementById('collapseText');
+
+        if (btnToggleCollapse && targetContainerSales) {
+            btnToggleCollapse.addEventListener('click', function() {
+                targetContainerSales.classList.toggle('collapsed');
+                if (targetContainerSales.classList.contains('collapsed')) {
+                    collapseIcon.innerHTML = '&#9660;';
+                    collapseText.textContent = 'Tampilkan';
+                } else {
+                    collapseIcon.innerHTML = '&#9650;';
+                    collapseText.textContent = 'Sembunyikan';
+                }
+            });
+        }
 
         const columnHeadersSales = [
             "TGL",

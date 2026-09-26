@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 
-// 2. AJAX Handler: Ambil Seluruh Data Database untuk Admin
+// 2. AJAX Handler: Ambil Seluruh Data Database untuk Admin (Hanya Data Ber-selisih)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'get_admin_database_data') {
     header('Content-Type: application/json');
 
@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
         ]);
 
-        $stmt = $pdo->query("SELECT * FROM hasil_stock_opname ORDER BY created_at DESC, id DESC");
+        $stmt = $pdo->query("SELECT * FROM hasil_stock_opname WHERE selisih != 0 ORDER BY created_at DESC, id DESC");
         $rows = $stmt->fetchAll();
 
         echo json_encode(['success' => true, 'data' => $rows]);
@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 
-// 3. AJAX Handler: Hapus Item dari Database
+// 3. AJAX Handler: Hapus Item dari Database (Hapus Semua Baris Berdasarkan PLU)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_item_db') {
     header('Content-Type: application/json');
 
@@ -104,35 +104,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
         ]);
 
-        $nama_rak  = isset($_POST['nama_rak']) ? $_POST['nama_rak'] : '';
-        $noshelf   = isset($_POST['noshelf']) ? $_POST['noshelf'] : '';
-        $kirikanan = isset($_POST['kirikanan']) ? $_POST['kirikanan'] : '';
-        $plumd     = isset($_POST['plumd']) ? $_POST['plumd'] : '';
+        $plumd = isset($_POST['plumd']) ? trim($_POST['plumd']) : '';
 
         if (empty($plumd)) {
             echo json_encode(['success' => false, 'message' => 'PLU tidak boleh kosong.']);
             exit;
         }
 
-        $sql = "DELETE FROM hasil_stock_opname 
-                WHERE plumd = :plumd 
-                  AND nama_rak = :nama_rak 
-                  AND noshelf = :noshelf 
-                  AND kirikanan = :kirikanan";
+        // Menghapus seluruh baris data di database yang memiliki PLU tersebut tanpa memandang beda Modis
+        $sql = "DELETE FROM hasil_stock_opname WHERE plumd = :plumd";
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute([
-            ':plumd'     => $plumd,
-            ':nama_rak'  => $nama_rak,
-            ':noshelf'   => $noshelf,
-            ':kirikanan' => $kirikanan
+            ':plumd' => $plumd
         ]);
 
         $deletedCount = $stmt->rowCount();
 
         echo json_encode([
             'success' => true, 
-            'message' => "Berhasil menghapus $deletedCount baris data PLU ($plumd) dari database."
+            'message' => "Berhasil menghapus seluruh data PLU ($plumd) sebanyak $deletedCount baris dari database."
         ]);
 
     } catch (Exception $e) {
@@ -1105,7 +1096,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
             <div class="sidebar-footer-action" id="sidebarFooterAction" style="display: none;">
                 <button type="button" class="btn-sidebar-logout" id="btnGantiAkun">
-                    <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> Ganti Akun
+                    <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> Log Out
                 </button>
             </div>
         </aside>
@@ -1218,7 +1209,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
             <div id="sectionModis" class="view-section">
                 <div id="alertSuccessUpload" class="alert alert-success">File JSON berhasil diproses. Silakan pilih filter.</div>
-                <div id="cacheInfo" class="cache-info">Data tersimpan di cache dimuat. Silakan pilih filter.</div>
+                <div id="cacheInfo" class="cache-info">Data tersimpan di cache. Silakan pilih filter.</div>
                 <div class="card">
                     <div class="form-box">
                         <div>
@@ -1239,7 +1230,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                 <option value="">-- Semua Shelfing --</option>
                             </select>
                         </div>
-                        <button type="button" id="btnTampilkanFilter" class="btn-submit">Simpan & Tampilkan</button>
+                        <button type="button" id="btnTampilkanFilter" class="btn-submit">Simpan & Lanjut</button>
                     </div>
                 </div>
             </div>
@@ -1349,7 +1340,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                             </thead>
                             <tbody id="tableUploadSelisihBody">
                                 <tr>
-                                    <td colspan="6" style="text-align: left; color: #000; padding: 12px;">Masukkan PLU dan Selisih lalu klik tombol Cari.</td>
+                                    <td colspan="6" style="text-align: left; color: #000; padding: 12px;">Masukkan PLU dan Selisih lalu klik tombol Tampilkan.</td>
                                 </tr>
                             </tbody>
                             <tfoot id="tableUploadSelisihFoot" style="display: none;">
@@ -1364,6 +1355,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             </div>
 
         </main>
+    </div>
+
+    <!-- Modal Kode Akses Admin -->
+    <div id="accessCodeModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-item-title">Kode Akses Database</div>
+                <div class="modal-item-desc">Masukkan kode akses untuk membuka menu Admin</div>
+            </div>
+            <div class="modal-body">
+                <label for="txtAccessCode">Kode Akses:</label>
+                <input type="password" id="txtAccessCode" class="modal-input" placeholder="Masukkan kode">
+                <div id="accessCodeError" style="color: #ef4444; font-size: 11px; text-align: center; display: none; font-weight: bold;">
+                    Kode akses salah!
+                </div>
+                <div class="modal-action-btns">
+                    <button type="button" id="btnSubmitAccessCode" class="btn-action-modal btn-plus">
+                        Masuk
+                    </button>
+                    <button type="button" id="btnCancelAccessCode" class="btn-close-modal" style="flex: 1; margin-top: 0;">
+                        Batal
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Modal Input Pop-up -->
@@ -1473,6 +1489,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         const btnSalinHasilAkhir = document.getElementById('btnSalinHasilAkhir');
         const btnUploadDB = document.getElementById('btnUploadDB');
         const btnResetHasilAkhir = document.getElementById('btnResetHasilAkhir');
+
+        const accessCodeModal = document.getElementById('accessCodeModal');
+        const txtAccessCode = document.getElementById('txtAccessCode');
+        const accessCodeError = document.getElementById('accessCodeError');
+        const btnSubmitAccessCode = document.getElementById('btnSubmitAccessCode');
+        const btnCancelAccessCode = document.getElementById('btnCancelAccessCode');
 
         const inputModal = document.getElementById('inputModal');
         const modalProductImg = document.getElementById('modalProductImg');
@@ -1777,11 +1799,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             });
         }
 
+        function openAccessCodeModal() {
+            txtAccessCode.value = '';
+            accessCodeError.style.display = 'none';
+            accessCodeModal.classList.add('active');
+            setTimeout(() => {
+                txtAccessCode.focus();
+            }, 100);
+        }
+
+        function closeAccessCodeModal() {
+            accessCodeModal.classList.remove('active');
+            txtAccessCode.value = '';
+            accessCodeError.style.display = 'none';
+        }
+
+        function verifyAccessCode() {
+            const inputCode = txtAccessCode.value;
+            if (inputCode === '@@@@@') {
+                closeAccessCodeModal();
+                setAccount('Admin');
+            } else {
+                accessCodeError.style.display = 'block';
+                txtAccessCode.value = '';
+                txtAccessCode.focus();
+            }
+        }
+
+        btnSubmitAccessCode.addEventListener('click', verifyAccessCode);
+        btnCancelAccessCode.addEventListener('click', closeAccessCodeModal);
+
+        txtAccessCode.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                verifyAccessCode();
+            }
+        });
+
         accountBtns.forEach(btn => {
             btn.addEventListener('click', async function() {
                 const acc = this.getAttribute('data-account');
+                
+                if (acc === 'Admin') {
+                    openAccessCodeModal();
+                    return;
+                }
+
                 await setAccount(acc);
-                if (selectedAccount === 'Admin') return;
 
                 if (globalProcessedItems.length > 0) {
                     const hasFilter = updateMenuLockStatus();
@@ -2052,7 +2115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
 
         async function deleteItemFromDB(namaRak, noshelf, kirikanan, plumd) {
-            if (!confirm(`Apakah Anda yakin ingin menghapus item PLU (${plumd}) ini?\n\nCatatan: Semua riwayat data lama terkait PLU ini di rak/modis ini akan dihapus dari database.`)) {
+            if (!confirm(`Apakah kamu yakin ingin menghapus item PLU (${plumd}) ini?\n\nCatatan: Semua riwayat data lama terkait PLU ini di rak/modis ini akan dihapus dari database.`)) {
                 return;
             }
 
@@ -2628,7 +2691,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 return;
             }
 
-            if (!confirm('Apakah Anda yakin ingin mengupload data selisih PLU ini ke database MySQL?')) {
+            if (!confirm('Apakah kamu yakin ingin mengupload data selisih PLU ini ke database MySQL?')) {
                 return;
             }
 
@@ -2675,7 +2738,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 return;
             }
 
-            if (!confirm('Apakah Anda yakin ingin mengupload seluruh data tabel ini ke database MySQL?')) {
+            if (!confirm('Apakah kamu yakin ingin mengupload seluruh data tabel ini ke database MySQL?')) {
                 return;
             }
 
@@ -2842,7 +2905,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         async function resetAccountData() {
             if (!selectedAccount) return;
             
-            if (!confirm(`Apakah Anda yakin ingin mereset semua filter, inputan stok fisik, dan history untuk ${selectedAccount}?`)) {
+            if (!confirm(`Apakah kamu yakin ingin mereset semua filter, inputan stok fisik, dan history untuk ${selectedAccount}?`)) {
                 return;
             }
 

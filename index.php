@@ -127,6 +127,7 @@
         .menu-item:nth-child(5) { animation-delay: 0.3s; }
         .menu-item:nth-child(6) { animation-delay: 0.35s; }
         .menu-item:nth-child(7) { animation-delay: 0.4s; }
+        .menu-item:nth-child(8) { animation-delay: 0.45s; }
 
         @keyframes slideUp {
             from {
@@ -214,21 +215,38 @@
             line-height: 1.5;
         }
 
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
         .modal-btn {
-            background: #4338ca;
-            color: #ffffff;
             border: none;
             padding: 12px 24px;
             border-radius: 12px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            width: 100%;
+            flex: 1;
             transition: background 0.2s ease;
         }
 
-        .modal-btn:hover {
+        .modal-btn-primary {
+            background: #4338ca;
+            color: #ffffff;
+        }
+
+        .modal-btn-primary:hover {
             background: #3730a3;
+        }
+
+        .modal-btn-secondary {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #e2e8f0;
         }
     </style>
 </head>
@@ -247,6 +265,7 @@
             <a href="stock_opname.php" class="menu-item">Stock Opname</a>
             <a href="sales_harian.php" class="menu-item">Laporan Sales Harian</a>
             <a href="sales_palmur.php" class="menu-item">Laporan Paling Murah</a>
+            <a href="pos_manual.php" class="menu-item full-width">POS Kasir Manualan</a>
             <a href="http://192.168.137.1:3000/index2.html" class="menu-item full-width" id="btnRekapKas">Rekapan Kas Induk & Anak</a>
         </div>
 
@@ -259,7 +278,10 @@
         <div class="modal-box">
             <h3>Pemberitahuan</h3>
             <p>Sebelum klik OKE pastikan jaringan hotspot di komputer kasir sudah aktif, dan sambung ke jaringan wifi nya agar aplikasi bisa di akses .. </p>
-            <button class="modal-btn" id="btnConfirm">OKE</button>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" id="btnCancel">Batal</button>
+                <button class="modal-btn modal-btn-primary" id="btnConfirm">OKE</button>
+            </div>
         </div>
     </div>
 
@@ -267,6 +289,7 @@
         const btnRekapKas = document.getElementById('btnRekapKas');
         const modalNotice = document.getElementById('modalNotice');
         const btnConfirm = document.getElementById('btnConfirm');
+        const btnCancel = document.getElementById('btnCancel');
 
         let targetUrl = '';
 
@@ -274,6 +297,10 @@
             e.preventDefault();
             targetUrl = this.getAttribute('href');
             modalNotice.classList.add('active');
+        });
+
+        btnCancel.addEventListener('click', function() {
+            modalNotice.classList.remove('active');
         });
 
         btnConfirm.addEventListener('click', function() {

@@ -175,15 +175,11 @@ $initialRowCount = max(10, count($formData));
         input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[readonly] { background-color: #f1f5f9; border-color: #cbd5e1; font-weight: 600; color: #334155; }
         
-        .btn-group-top { 
-            display: flex; 
-            flex-direction: row; 
-            gap: 12px; 
-            margin-bottom: 14px; 
-        }
         .btn-group-bottom {
             display: flex;
-            margin-top: 10px;
+            flex-direction: row;
+            gap: 12px;
+            margin-top: 14px;
         }
         .btn { 
             font-family: 'Inter', sans-serif;
@@ -217,10 +213,6 @@ $initialRowCount = max(10, count($formData));
 
     <form action="" method="POST" id="mainForm">
         <input type="hidden" name="action" id="form_action" value="save">
-
-        <div class="btn-group-top">
-            <button type="submit" onclick="setAction('save')" class="btn btn-submit">Simpan Data</button>
-        </div>
 
         <div class="table-responsive">
             <table>
@@ -273,6 +265,7 @@ $initialRowCount = max(10, count($formData));
 
         <div class="btn-group-bottom">
             <button type="button" onclick="addNewRow()" class="btn btn-add">+ Tambah Baris</button>
+            <button type="submit" onclick="setAction('save')" class="btn btn-submit">Simpan Data</button>
         </div>
     </form>
 </div>
