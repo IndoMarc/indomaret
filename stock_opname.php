@@ -1,7 +1,5 @@
 <?php
-// --- HANDLER SERVER SIDE (PHP) ---
 
-// 1. AJAX Handler: Upload Ke Database
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'upload_db') {
     header('Content-Type: application/json');
 
@@ -61,7 +59,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 
-// 2. AJAX Handler: Ambil Seluruh Data Database untuk Admin (Hanya Data Ber-selisih)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'get_admin_database_data') {
     header('Content-Type: application/json');
 
@@ -88,7 +85,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 
-// 3. AJAX Handler: Hapus Item dari Database (Hapus Semua Baris Berdasarkan PLU)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete_item_db') {
     header('Content-Type: application/json');
 
@@ -111,7 +107,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             exit;
         }
 
-        // Menghapus seluruh baris data di database yang memiliki PLU tersebut tanpa memandang beda Modis
         $sql = "DELETE FROM hasil_stock_opname WHERE plumd = :plumd";
 
         $stmt = $pdo->prepare($sql);
@@ -142,6 +137,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     <script src="https://unpkg.com/html5-qrcode"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -153,14 +150,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             height: 100%;
             width: 100%;
             overflow: hidden;
-            font-family: sans-serif;
-            background-color: #f4f6f9;
-            color: #333;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f1f5f9;
+            color: #1e293b;
         }
 
         header, footer {
-            height: 45px;
-            background-color: #1e293b;
+            height: 50px;
+            background-color: #0f172a;
             color: #ffffff;
             display: flex;
             align-items: center;
@@ -169,6 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             left: 0;
             right: 0;
             z-index: 1001;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
 
         header {
@@ -179,35 +177,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             bottom: 0;
             justify-content: center;
             font-size: 12px;
+            height: 35px;
+            background-color: #0f172a;
+            border-top: 1px solid #1e293b;
         }
 
         .toggle-btn {
-            background: none;
-            border: none;
+            background: #1e293b;
+            border: 1px solid #334155;
             color: white;
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
             outline: none;
-            padding: 2px;
+            padding: 6px 10px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-btn:hover {
+            background: #334155;
         }
 
         .header-title {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 16px;
-            font-weight: bold;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
             margin: 0;
             text-align: center;
             white-space: nowrap;
+            color: #f8fafc;
         }
 
         .wrapper {
             position: fixed;
-            top: 45px;
-            bottom: 45px;
+            top: 50px;
+            bottom: 35px;
             left: 0;
             right: 0;
             overflow: hidden;
@@ -218,16 +228,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             top: 0;
             left: 0;
             bottom: 0;
-            width: 240px;
-            background-color: #334155;
+            width: 260px;
+            background: #1e293b;
             color: #fff;
-            transition: transform 0.3s ease;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             transform: translateX(-100%);
             z-index: 1000;
-            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+            box-shadow: 4px 0 15px rgba(0, 0, 0, 0.15);
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            border-right: 1px solid #334155;
         }
 
         .sidebar.open {
@@ -237,45 +248,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         .sidebar-menu-container {
             overflow-y: auto;
             flex: 1;
+            padding: 12px 8px;
         }
 
         .sidebar ul {
             list-style: none;
-            padding: 16px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
         .sidebar ul li a {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 14px 20px;
-            color: #cbd5e1;
+            padding: 12px 14px;
+            color: #94a3b8;
             text-decoration: none;
-            font-size: 15px;
-            transition: background 0.2s, color 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.2s ease;
             cursor: pointer;
         }
 
         .sidebar ul li a i {
             width: 18px;
             height: 18px;
+            stroke-width: 2;
         }
 
-        .sidebar ul li a:hover, .sidebar ul li a.active {
-            background-color: #0f172a;
-            color: #fff;
+        .sidebar ul li a:hover {
+            background-color: #334155;
+            color: #f8fafc;
+        }
+
+        .sidebar ul li a.active {
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            color: #ffffff;
+            font-weight: 600;
+            box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3);
         }
 
         .sidebar ul li.disabled a {
-            opacity: 0.4;
+            opacity: 0.35;
             cursor: not-allowed;
             pointer-events: none;
         }
 
         .sidebar-footer-action {
-            padding: 12px 16px;
-            border-top: 1px solid #475569;
-            background-color: #1e293b;
+            padding: 12px 14px;
+            border-top: 1px solid #334155;
+            background-color: #0f172a;
         }
 
         .btn-sidebar-logout {
@@ -288,9 +312,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             background-color: #ef4444;
             color: white;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 13px;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
             transition: background-color 0.2s;
         }
@@ -301,7 +325,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         .content {
             height: 100%;
-            padding: 4px;
+            padding: 8px;
             overflow-y: auto;
             overflow-x: hidden;
             -webkit-overflow-scrolling: touch;
@@ -310,9 +334,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         .card {
             background: #ffffff;
-            border-radius: 6px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            padding: 12px;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
+            padding: 14px;
             width: 100%;
             margin-bottom: 8px;
         }
@@ -321,11 +346,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             display: flex;
             flex-direction: column;
             height: 100%;
-            padding: 8px;
+            padding: 10px;
             margin-bottom: 0;
             background: #ffffff;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #e2e8f0;
         }
 
         .view-section {
@@ -362,16 +388,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         .form-box input[type="file"], .form-box select, .form-box input[type="text"], .search-input, .textarea-custom {
             font-size: 13px;
-            padding: 10px;
+            padding: 10px 12px;
             border: 1px solid #cbd5e1;
-            border-radius: 4px;
+            border-radius: 6px;
             background: #f8fafc;
             width: 100%;
+            color: #1e293b;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-box input[type="file"]:focus, .form-box select:focus, .form-box input[type="text"]:focus, .search-input:focus, .textarea-custom:focus {
+            border-color: #0284c7;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
         }
 
         .textarea-custom {
             resize: vertical;
-            min-height: 50px;
+            min-height: 60px;
             font-family: monospace;
         }
 
@@ -382,7 +416,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         .account-card-header h2 {
             font-size: 16px;
-            color: #1e293b;
+            color: #0f172a;
             font-weight: 700;
         }
 
@@ -530,7 +564,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             border-radius: 6px;
             cursor: pointer;
             font-size: 12px;
-            font-weight: bold;
+            font-weight: 600;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -557,7 +591,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             border-radius: 6px;
             cursor: pointer;
             font-size: 12px;
-            font-weight: bold;
+            font-weight: 600;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -576,7 +610,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             border-radius: 6px;
             cursor: pointer;
             font-size: 12px;
-            font-weight: bold;
+            font-weight: 600;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -595,7 +629,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             border-radius: 4px;
             cursor: pointer;
             font-size: 10px;
-            font-weight: bold;
+            font-weight: 600;
             display: inline-flex;
             align-items: center;
             gap: 4px;
@@ -636,7 +670,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             color: white;
             padding: 10px;
             font-size: 13px;
-            font-weight: bold;
+            font-weight: 600;
             border-radius: 4px;
             text-decoration: none;
             transition: background-color 0.2s;
@@ -652,9 +686,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             border: none;
             padding: 10px;
             font-size: 13px;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
-            font-weight: bold;
+            font-weight: 600;
         }
 
         .btn-submit:hover {
@@ -664,7 +698,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         .alert {
             padding: 8px 12px;
             font-size: 12px;
-            border-radius: 4px;
+            border-radius: 6px;
             margin-bottom: 12px;
             display: none;
         }
@@ -687,7 +721,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             background-color: #e0f2fe;
             border: 1px solid #bae6fd;
             padding: 8px;
-            border-radius: 4px;
+            border-radius: 6px;
             margin-bottom: 8px;
             display: none;
         }
@@ -707,19 +741,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             min-width: 100%;
             border-collapse: separate;
             border-spacing: 0;
-            font-size: 10px;
+            font-size: 11px;
             table-layout: fixed;
         }
 
         th, td {
             border-bottom: 1px solid #e2e8f0;
             border-right: 1px solid #f1f5f9;
-            padding: 6px 1px;
-            font-size: 10px;
+            padding: 6px 4px;
+            font-size: 11px;
             font-weight: normal;
             word-wrap: break-word;
             overflow-wrap: break-word;
-            color: #000;
+            color: #1e293b;
             vertical-align: middle;
             line-height: 1.25;
         }
@@ -728,11 +762,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             border-right: none;
         }
 
-        #tableBody td:nth-child(1), #tableBody th:nth-child(1) { width: 11%; text-align: left; padding-left: 2px; }
-        #tableBody td:nth-child(2), #tableBody th:nth-child(2) { width: 15%; text-align: left; }
-        #tableBody td:nth-child(3), #tableBody th:nth-child(3) { width: 56%; text-align: left; }
+        #tableBody td:nth-child(1), #tableBody th:nth-child(1) { width: 12%; text-align: left; padding-left: 4px; }
+        #tableBody td:nth-child(2), #tableBody th:nth-child(2) { width: 16%; text-align: left; }
+        #tableBody td:nth-child(3), #tableBody th:nth-child(3) { width: 52%; text-align: left; }
         #tableBody td:nth-child(4), #tableBody th:nth-child(4) { width: 6%; text-align: center; }
-        #tableBody td:nth-child(5), #tableBody th:nth-child(5) { width: 6%; text-align: center; }
+        #tableBody td:nth-child(5), #tableBody th:nth-child(5) { width: 8%; text-align: center; }
         #tableBody td:nth-child(6), #tableBody th:nth-child(6) { width: 6%; text-align: center; }
 
         #tableHasilAkhirBody td:nth-child(1), #tableHasilAkhirHeader th:nth-child(1) { width: 15%; text-align: left; }
@@ -758,11 +792,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
 
         .admin-table-header-title {
-            background-color: #334155;
+            background-color: #1e293b;
             color: #ffffff;
             padding: 8px 12px;
             font-size: 11px;
-            font-weight: bold;
+            font-weight: 700;
         }
 
         .tableAdminCustom th:nth-child(1), .tableAdminCustom td:nth-child(1) { width: 18%; text-align: left; padding-left: 4px; }
@@ -774,7 +808,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         .tableAdminCustom tfoot td {
             background-color: #f1f5f9;
-            font-weight: bold;
+            font-weight: 700;
             border-top: 2px solid #cbd5e1;
             padding: 8px 4px;
             font-size: 10px;
@@ -782,7 +816,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
 
         .grand-total-box {
-            background-color: #1e293b;
+            background-color: #0f172a;
             color: #ffffff;
             padding: 12px;
             border-radius: 6px;
@@ -790,7 +824,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-weight: bold;
+            font-weight: 700;
             font-size: 12px;
         }
 
@@ -800,7 +834,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         #tableHasilAkhirFoot td, #tableUploadSelisihFoot td {
             background-color: #f8fafc;
-            font-weight: bold;
+            font-weight: 700;
             border-top: 2px solid #cbd5e1;
             padding: 8px 4px;
             font-size: 10px;
@@ -809,14 +843,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         th {
             background-color: #f1f5f9;
-            color: #000;
+            color: #334155;
             font-weight: 700;
             position: sticky;
             top: 0;
             z-index: 10;
             text-transform: uppercase;
             font-size: 10px;
-            letter-spacing: 0px;
+            letter-spacing: 0.2px;
             line-height: 1.2;
             padding: 6px 0px;
             text-align: center;
@@ -856,7 +890,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         .history-text {
             font-size: 10px;
-            color: #000;
+            color: #475569;
             font-weight: normal;
             display: block;
             word-break: break-all;
@@ -867,14 +901,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             font-weight: normal;
             color: #000;
             text-align: center;
-            font-size: 10px;
+            font-size: 11px;
         }
 
         .badge-selisih {
-            font-weight: bold;
+            font-weight: 700;
             color: #000;
             text-align: center;
-            font-size: 10px;
+            font-size: 11px;
         }
 
         .badge-stok-fisik-clickable {
@@ -890,8 +924,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             border: 1px solid #0284c7;
             border-radius: 4px;
             background-color: #ffffff;
-            font-size: 10px;
-            font-weight: bold;
+            font-size: 11px;
+            font-weight: 700;
             color: #0284c7;
             transition: all 0.2s ease;
         }
@@ -930,7 +964,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         .modal-card {
             background: #ffffff;
-            border-radius: 10px;
+            border-radius: 12px;
             box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2);
             width: 100%;
             max-width: 320px;
@@ -966,7 +1000,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         .modal-item-title {
             font-size: 14px;
-            font-weight: bold;
+            font-weight: 700;
             color: #0284c7;
         }
 
@@ -990,7 +1024,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         .modal-input {
             font-size: 16px;
-            font-weight: bold;
+            font-weight: 700;
             padding: 10px;
             border: 1px solid #cbd5e1;
             border-radius: 6px;
@@ -1011,7 +1045,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             border: none;
             border-radius: 6px;
             font-size: 13px;
-            font-weight: bold;
+            font-weight: 600;
             color: white;
             cursor: pointer;
             display: flex;
@@ -1044,7 +1078,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             padding: 8px;
             border-radius: 6px;
             font-size: 12px;
-            font-weight: bold;
+            font-weight: 600;
             cursor: pointer;
             margin-top: 4px;
             transition: background-color 0.2s;
@@ -1060,6 +1094,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             margin: 0 auto;
             border-radius: 8px;
             overflow: hidden;
+        }
+
+        .toast-notification {
+            position: fixed;
+            top: 60px;
+            right: 16px;
+            z-index: 3000;
+            padding: 12px 18px;
+            border-radius: 8px;
+            background: #0f172a;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+
+        .toast-notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-success {
+            background-color: #16a34a;
+        }
+
+        .toast-error {
+            background-color: #dc2626;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(3px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            color: #fff;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 42px;
+            height: 42px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top: 4px solid #38bdf8;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 12px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         footer p {
@@ -1082,10 +1185,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <ul>
                     <li><a id="menuAkun" class="active"><i data-lucide="users"></i> <span id="txtMenuAkun">Pilih Akun</span></a></li>
                     
-                    <!-- Menu Khusus Admin -->
                     <li id="navAdminOnly" style="display: none;"><a id="menuAdminDB"><i data-lucide="database"></i> Full List Hasil SO</a></li>
 
-                    <!-- Menu Khusus Akun Non-Admin -->
                     <li class="nav-restricted" style="display: none;"><a id="menuUpload"><i data-lucide="upload-cloud"></i> Upload Stok</a></li>
                     <li class="nav-restricted" style="display: none;"><a id="menuModis"><i data-lucide="filter"></i> Pilih Modis</a></li>
                     <li class="nav-restricted nav-filter-required disabled" style="display: none;"><a id="menuLaporan"><i data-lucide="list"></i> List Item SO</a></li>
@@ -1171,7 +1272,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 </div>
             </div>
 
-            <!-- Section Khusus Admin (Full List Database) -->
             <div id="sectionAdminDB" class="view-section">
                 <div class="card card-laporan">
                     <div class="form-box" style="margin-bottom: 8px;">
@@ -1200,7 +1300,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <div class="download-box">
                             <span class="download-text">Sebelum Upload Data, silakan download data stok terlebih dahulu melalui tombol berikut:</span>
                             <a href="http://192.168.137.1:3000/data_so.html" class="btn-download">Download Data Stok</a>
-                            <span class="wifi-note">* Pastikan tersambung ke WiFi komputer kasir sebelum klik tombol download.</span>
+                            <span class="wifi-note">Pastikan tersambung ke WiFi komputer kasir sebelum klik tombol download.</span>
                         </div>
 
                         <div>
@@ -1315,7 +1415,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 </div>
             </div>
 
-            <!-- Section Upload Selisih PLU -->
             <div id="sectionUploadSelisihPLU" class="view-section">
                 <div class="card card-laporan">
                     <div class="form-box" style="margin-bottom: 12px;">
@@ -1361,7 +1460,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         </main>
     </div>
 
-    <!-- Modal Kode Akses Admin -->
     <div id="accessCodeModal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
@@ -1386,7 +1484,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         </div>
     </div>
 
-    <!-- Modal Input Pop-up -->
     <div id="inputModal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-img-container">
@@ -1412,7 +1509,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         </div>
     </div>
 
-    <!-- Camera Scan Modal -->
     <div id="scanModal" class="modal-overlay">
         <div class="modal-card">
             <div class="modal-header">
@@ -1424,6 +1520,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <button type="button" id="btnCloseScanModal" class="btn-close-modal">Tutup Kamera</button>
             </div>
         </div>
+    </div>
+
+    <div id="toastNotification" class="toast-notification">
+        <span id="toastMessage">Notifikasi</span>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <div style="font-size: 14px; font-weight: 600;">Mengunggah data ke database...</div>
     </div>
 
     <footer>
@@ -1513,18 +1618,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         const scanModal = document.getElementById('scanModal');
         const btnCloseScanModal = document.getElementById('btnCloseScanModal');
 
+        const toastNotification = document.getElementById('toastNotification');
+        const toastMessage = document.getElementById('toastMessage');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
         let globalProcessedItems = [];
         let currentFilteredItems = [];
         let plumdToBarcodesMap = new Map();
         let selectedAccount = null;
-        let activeRowIndex = null;
-        let activeModalSourceItems = null;
+        let activeItemKey = null;
         let lastUpdatedPlumdKey = null;
         let html5QrCode = null;
         let isDropdownPopulated = false;
         let adminExportDataGroups = null;
         let currentSelisihSearchResult = [];
         let rawAdminRowsData = [];
+        let toastTimeout = null;
+
+        function showToast(message, type = 'success') {
+            if (toastTimeout) clearTimeout(toastTimeout);
+            
+            toastMessage.innerText = message;
+            toastNotification.className = 'toast-notification show';
+            
+            if (type === 'error') {
+                toastNotification.classList.add('toast-error');
+            } else {
+                toastNotification.classList.add('toast-success');
+            }
+
+            toastTimeout = setTimeout(() => {
+                toastNotification.classList.remove('show');
+            }, 3000);
+        }
+
+        function showLoading() {
+            loadingOverlay.classList.add('active');
+        }
+
+        function hideLoading() {
+            loadingOverlay.classList.remove('active');
+        }
 
         function updateMenuLockStatus() {
             const hasFilter = loadFilterFromCache();
@@ -2156,6 +2290,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 return;
             }
 
+            showLoading();
             try {
                 const formData = new FormData();
                 formData.append('action', 'delete_item_db');
@@ -2172,25 +2307,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 const result = await response.json();
 
                 if (result.success) {
-                    alert(result.message);
+                    showToast(result.message, 'success');
                     loadAdminDatabaseData();
                 } else {
-                    alert('Gagal: ' + result.message);
+                    showToast('Gagal: ' + result.message, 'error');
                 }
             } catch (err) {
                 console.error(err);
-                alert('Terjadi kesalahan jaringan saat menghapus data.');
+                showToast('Terjadi kesalahan jaringan saat menghapus data.', 'error');
+            } finally {
+                hideLoading();
             }
         }
 
         function exportAdminTableToExcel() {
             if (!adminExportDataGroups || adminExportDataGroups.size === 0) {
-                alert('Tidak ada data untuk diekspor ke Excel.');
+                showToast('Tidak ada data untuk diekspor ke Excel.', 'error');
                 return;
             }
 
             if (typeof XLSX === 'undefined') {
-                alert('Pustaka SheetJS belum siap.');
+                showToast('Pustaka SheetJS belum siap.', 'error');
                 return;
             }
 
@@ -2412,7 +2549,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             renderTable(searchedItems);
 
             if (searchedItems.length === 1) {
-                openInputModal(0, searchedItems);
+                openInputModalByKey(getItemUniqueKey(searchedItems[0]));
             }
         }
 
@@ -2423,7 +2560,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         btnStartScan.addEventListener('click', function() {
             if (typeof Html5Qrcode === 'undefined') {
-                alert('Pustaka scanner belum siap. Pastikan jaringan internet aktif.');
+                showToast('Pustaka scanner belum siap. Pastikan jaringan internet aktif.', 'error');
                 return;
             }
             scanModal.classList.add('active');
@@ -2443,7 +2580,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 (errorMessage) => {}
             ).catch(err => {
                 console.error("Gagal memulai kamera:", err);
-                alert("Kamera tidak dapat diakses. Pastikan izin kamera telah diberikan.");
+                showToast("Kamera tidak dapat diakses. Pastikan izin kamera telah diberikan.", 'error');
             });
         });
 
@@ -2495,12 +2632,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 const historyStr = (item.INPUT_HISTORY && item.INPUT_HISTORY.length > 0) ? item.INPUT_HISTORY.join('') : '';
 
                 rowsHtml += `
-                    <tr id="rowItem_${i}" class="${highlightClass}">
+                    <tr id="rowItem_${escapeHtml(itemKey)}" class="${highlightClass}">
                         <td>${escapeHtml(modis)}</td>
                         <td>${escapeHtml(item.PLUMD || '')}</td>
                         <td>${escapeHtml(item.DESC2 || '')}</td>
                         <td class="badge-stok">${stokLpp}</td>
-                        <td class="badge-stok-fisik badge-stok-fisik-clickable" onclick="openInputModal(${i})"><span id="stokFisikVal_${i}">${valFisik}</span></td>
+                        <td class="badge-stok-fisik badge-stok-fisik-clickable" onclick="openInputModalByKey('${escapeHtml(itemKey)}')"><span>${valFisik}</span></td>
                         <td class="badge-selisih ${selisihClass}">${selisihStr}</td>
                         <td style="display:none;">${item.PRICE || ''}</td>
                         <td style="display:none;">${escapeHtml(item.BARCD || '')}</td>
@@ -2591,7 +2728,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             }
         }
 
-        // Logic Pencarian Selisih PLU (Menu Baru)
         function processSearchSelisihPLU() {
             const rawText = txtSearchSelisihPLU.value.trim();
             btnUploadDBSelisihPLU.style.display = 'none';
@@ -2604,7 +2740,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             }
 
             if (globalProcessedItems.length === 0) {
-                alert('Data stok belum dimuat. Silakan upload file data stok terlebih dahulu.');
+                showToast('Data stok belum dimuat. Silakan upload file data stok terlebih dahulu.', 'error');
                 return;
             }
 
@@ -2724,7 +2860,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         async function uploadSelisihPLUToDatabase() {
             if (currentSelisihSearchResult.length === 0) {
-                alert('Tidak ada data untuk diupload.');
+                showToast('Tidak ada data untuk diupload.', 'error');
                 return;
             }
 
@@ -2733,7 +2869,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             }
 
             btnUploadDBSelisihPLU.disabled = true;
-            btnUploadDBSelisihPLU.innerText = 'Mengupload...';
+            showLoading();
 
             try {
                 const formData = new FormData();
@@ -2749,14 +2885,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 const result = await response.json();
 
                 if (result.success) {
-                    alert('Berhasil: ' + result.message);
+                    showToast('Berhasil: ' + result.message, 'success');
                 } else {
-                    alert('Gagal: ' + result.message);
+                    showToast('Gagal: ' + result.message, 'error');
                 }
             } catch (err) {
                 console.error(err);
-                alert('Terjadi kesalahan jaringan/server saat mengupload data.');
+                showToast('Terjadi kesalahan jaringan/server saat mengupload data.', 'error');
             } finally {
+                hideLoading();
                 btnUploadDBSelisihPLU.disabled = false;
                 btnUploadDBSelisihPLU.innerHTML = '<i data-lucide="database" style="width: 14px; height: 14px;"></i> Upload Data';
                 if (window.lucide) {
@@ -2771,7 +2908,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         async function uploadKeDatabase() {
             if (currentFilteredItems.length === 0) {
-                alert('Tidak ada data untuk diupload.');
+                showToast('Tidak ada data untuk diupload.', 'error');
                 return;
             }
 
@@ -2801,7 +2938,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             });
 
             btnUploadDB.disabled = true;
-            btnUploadDB.innerText = 'Mengupload...';
+            showLoading();
 
             try {
                 const formData = new FormData();
@@ -2817,14 +2954,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 const result = await response.json();
 
                 if (result.success) {
-                    alert('Berhasil: ' + result.message);
+                    showToast('Berhasil: ' + result.message, 'success');
                 } else {
-                    alert('Gagal: ' + result.message);
+                    showToast('Gagal: ' + result.message, 'error');
                 }
             } catch (err) {
                 console.error(err);
-                alert('Terjadi kesalahan jaringan/server saat mengupload data.');
+                showToast('Terjadi kesalahan jaringan/server saat mengupload data.', 'error');
             } finally {
+                hideLoading();
                 btnUploadDB.disabled = false;
                 btnUploadDB.innerHTML = '<i data-lucide="database" style="width: 14px; height: 14px;"></i> Upload Data';
                 if (window.lucide) {
@@ -2844,7 +2982,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         function copyHasilAkhir() {
             if (currentFilteredItems.length === 0) {
-                alert('Tidak ada data untuk disalin.');
+                showToast('Tidak ada data untuk disalin.', 'error');
                 return;
             }
 
@@ -2871,7 +3009,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             }
 
             if (itemsSelisih.length === 0) {
-                alert('Tidak ada data selisih untuk disalin.');
+                showToast('Tidak ada data selisih untuk disalin.', 'error');
                 return;
             }
 
@@ -2904,7 +3042,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(resultText).then(() => {
-                    alert('Hasil SO berhasil disalin ke clipboard!');
+                    showToast('Hasil SO berhasil disalin ke clipboard!', 'success');
                 }).catch(err => {
                     fallbackCopyTextToClipboard(resultText);
                 });
@@ -2926,12 +3064,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             try {
                 const successful = document.execCommand('copy');
                 if (successful) {
-                    alert('Hasil SO berhasil disalin ke clipboard!');
+                    showToast('Hasil SO berhasil disalin ke clipboard!', 'success');
                 } else {
-                    alert('Gagal menyalin hasil SO.');
+                    showToast('Gagal menyalin hasil SO.', 'error');
                 }
             } catch (err) {
-                alert('Gagal menyalin hasil SO: ' + err);
+                showToast('Gagal menyalin hasil SO: ' + err, 'error');
             }
 
             document.body.removeChild(textArea);
@@ -2967,16 +3105,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             
             switchMenu(menuModis, sectionModis);
 
-            alert('Data dan filter akun berhasil direset.');
+            showToast('Data dan filter akun berhasil direset.', 'success');
         }
 
         btnResetHasilAkhir.addEventListener('click', resetAccountData);
 
-        function openInputModal(index, sourceList) {
-            activeRowIndex = index;
-            activeModalSourceItems = sourceList || currentFilteredItems;
+        function openInputModalByKey(uniqueKey) {
+            activeItemKey = uniqueKey;
             
-            const item = activeModalSourceItems[index];
+            const item = globalProcessedItems.find(it => getItemUniqueKey(it) === uniqueKey);
             if (!item) return;
 
             const plumdVal = String(item.PLUMD || '').trim();
@@ -2994,22 +3131,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         function closeModal() {
             inputModal.classList.remove('active');
-            activeRowIndex = null;
-            activeModalSourceItems = null;
+            activeItemKey = null;
         }
 
         btnModalClose.addEventListener('click', closeModal);
 
         async function updateItemStock(op) {
-            if (activeRowIndex === null) return;
+            if (!activeItemKey) return;
             
-            const sourceList = activeModalSourceItems || currentFilteredItems;
-            const item = sourceList[activeRowIndex];
+            const item = globalProcessedItems.find(it => getItemUniqueKey(it) === activeItemKey);
             if (!item) return;
 
             const valInput = parseInt(modalInputValue.value) || 0;
             if (valInput <= 0) {
-                closeModal();
+                showToast('Harus input angka baru bisa klik tambah atau kurang', 'error');
                 return;
             }
 
@@ -3026,9 +3161,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 } else {
                     item.INPUT_HISTORY.push(`+${valInput}`);
                 }
+                showToast(`Berhasil menambah stok: +${valInput}`, 'success');
             } else if (op === '-') {
                 currentFisik = Math.max(0, currentFisik - valInput);
                 item.INPUT_HISTORY.push(`-${valInput}`);
+                showToast(`Berhasil mengurangi stok: -${valInput}`, 'success');
             }
 
             item.STOK_FISIK = currentFisik;
@@ -3055,7 +3192,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 renderTable(currentFilteredItems);
             }
 
-            const targetRow = document.getElementById(`rowItem_${activeRowIndex}`);
+            const targetRow = document.getElementById(`rowItem_${escapeHtml(activeItemKey)}`);
             if (targetRow) {
                 targetRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
