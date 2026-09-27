@@ -371,7 +371,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
         .textarea-custom {
             resize: vertical;
-            min-height: 100px;
+            min-height: 50px;
             font-family: monospace;
         }
 
@@ -1174,6 +1174,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             <!-- Section Khusus Admin (Full List Database) -->
             <div id="sectionAdminDB" class="view-section">
                 <div class="card card-laporan">
+                    <div class="form-box" style="margin-bottom: 8px;">
+                        <label for="txtSearchAdminPLU">Cari PLU:</label>
+                        <textarea id="txtSearchAdminPLU" class="textarea-custom" placeholder="Ketik PLU disini.."></textarea>
+                    </div>
                     <div class="action-bar-hasil">
                         <button type="button" id="btnRefreshAdminDB" class="btn-copy-data" style="background-color: #16a34a;">
                             <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i> Refresh Data
@@ -1462,6 +1466,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         const adminTablesContainer = document.getElementById('adminTablesContainer');
         const btnRefreshAdminDB = document.getElementById('btnRefreshAdminDB');
         const btnExportExcel = document.getElementById('btnExportExcel');
+        const txtSearchAdminPLU = document.getElementById('txtSearchAdminPLU');
 
         const fileInput = document.getElementById('json_file');
         const tableBody = document.getElementById('tableBody');
@@ -1519,6 +1524,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         let isDropdownPopulated = false;
         let adminExportDataGroups = null;
         let currentSelisihSearchResult = [];
+        let rawAdminRowsData = [];
 
         function updateMenuLockStatus() {
             const hasFilter = loadFilterFromCache();
@@ -1963,7 +1969,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 const result = await response.json();
 
                 if (result.success && Array.isArray(result.data)) {
-                    renderAdminTable(result.data);
+                    rawAdminRowsData = result.data;
+                    filterAndRenderAdminTable();
                 } else {
                     adminTablesContainer.innerHTML = `<div style="text-align: left; color: #dc2626; padding: 12px;">Gagal memuat data: ${result.message || 'Terjadi kesalahan'}</div>`;
                 }
@@ -1973,9 +1980,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             }
         }
 
+        function filterAndRenderAdminTable() {
+            if (!rawAdminRowsData || rawAdminRowsData.length === 0) {
+                adminTablesContainer.innerHTML = `<div style="text-align: left; color: #000; padding: 12px;">Belum ada data di database.</div>`;
+                adminExportDataGroups = null;
+                return;
+            }
+
+            const rawQuery = txtSearchAdminPLU ? txtSearchAdminPLU.value.trim() : '';
+            let targetPlus = [];
+
+            if (rawQuery !== '') {
+                targetPlus = rawQuery.split(/[\s\n]+/).map(p => p.trim()).filter(p => p.length > 0);
+            }
+
+            let filteredRows = rawAdminRowsData;
+
+            if (targetPlus.length > 0) {
+                filteredRows = rawAdminRowsData.filter(item => {
+                    const plu = String(item.plumd || '').trim();
+                    return targetPlus.some(target => plu.includes(target));
+                });
+            }
+
+            renderAdminTable(filteredRows);
+        }
+
+        if (txtSearchAdminPLU) {
+            txtSearchAdminPLU.addEventListener('input', filterAndRenderAdminTable);
+        }
+
         function renderAdminTable(rows) {
             if (rows.length === 0) {
-                adminTablesContainer.innerHTML = `<div style="text-align: left; color: #000; padding: 12px;">Belum ada data di database.</div>`;
+                adminTablesContainer.innerHTML = `<div style="text-align: left; color: #000; padding: 12px;">Data PLU tidak ditemukan di database.</div>`;
                 adminExportDataGroups = null;
                 return;
             }
