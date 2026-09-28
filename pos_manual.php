@@ -378,7 +378,7 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
         }
 
         .section-title {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -457,7 +457,7 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
             box-shadow: 0 1px 3px rgba(0,0,0,0.04);
             margin-bottom: 16px;
             border: 1px solid var(--border);
-            max-height: 380px;
+            max-height: 470px;
             overflow-y: auto;
         }
 
@@ -482,20 +482,20 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
         }
 
         .cart-item-plu {
-            font-size: 0.72rem;
+            font-size: 0.70rem;
             font-weight: 700;
             color: var(--text-muted);
             letter-spacing: 0.03em;
         }
 
         .cart-item-title {
-            font-size: 0.88rem;
+            font-size: 0.80rem;
             font-weight: 600;
             color: var(--text-main);
         }
 
         .cart-item-unit-price {
-            font-size: 0.78rem;
+            font-size: 0.70rem;
             font-weight: 700;
             color: var(--primary);
         }
@@ -503,7 +503,7 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
         .cart-item-unit-price .promo {
             color: var(--danger);
             text-decoration: line-through;
-            font-size: 0.72rem;
+            font-size: 0.70rem;
             margin-left: 4px;
             font-weight: normal;
         }
@@ -531,7 +531,7 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
         }
 
         .cart-item-price {
-            font-size: 0.88rem;
+            font-size: 0.80rem;
             font-weight: 700;
             min-width: 75px;
             text-align: right;
@@ -543,7 +543,7 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
             border: none;
             color: var(--danger);
             cursor: pointer;
-            padding: 6px;
+            padding: 5px;
             border-radius: 6px;
             display: flex;
             align-items: center;
