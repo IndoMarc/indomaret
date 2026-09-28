@@ -6,6 +6,61 @@ if (session_status() === PHP_SESSION_NONE) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     header('Content-Type: application/json');
     
+    if ($_POST['action'] === 'get_products') {
+        $jsonFile = __DIR__ . '/data_produk.json';
+        $produkList = [];
+
+        if (file_exists($jsonFile)) {
+            $jsonData = file_get_contents($jsonFile);
+            $parsedData = json_decode($jsonData, true);
+
+            if (is_array($parsedData)) {
+                if (isset($parsedData['data']) && is_array($parsedData['data'])) {
+                    $produkList = $parsedData['data'];
+                } elseif (isset($parsedData['produk']) && is_array($parsedData['produk'])) {
+                    $produkList = $parsedData['produk'];
+                } elseif (isset($parsedData['products']) && is_array($parsedData['products'])) {
+                    $produkList = $parsedData['products'];
+                } else {
+                    $produkList = $parsedData;
+                }
+            }
+        }
+        
+        $formattedProducts = [];
+        foreach ($produkList as $index => $item) {
+            if (!is_array($item)) continue;
+
+            $pluRaw = $item['plu'] ?? '';
+            $plu = !empty($pluRaw) ? (string)$pluRaw : 'ITEM_' . ($index + 1);
+            
+            $deskripsi = $item['deskripsi'] ?? 'Tanpa Nama';
+            
+            $hargaNormalRaw = preg_replace('/[^0-9.]/', '', (string)($item['harga_normal'] ?? '0'));
+            $hargaPromoRaw  = preg_replace('/[^0-9.]/', '', (string)($item['harga_promo'] ?? ''));
+            
+            $hargaNormal = floatval($hargaNormalRaw);
+            $hargaPromo  = !empty($hargaPromoRaw) ? floatval($hargaPromoRaw) : null;
+            
+            $harga = (!empty($hargaPromo) && $hargaPromo > 0) ? $hargaPromo : $hargaNormal;
+
+            $rawBarcode = $item['barcode'] ?? '';
+            $barcodes = is_array($rawBarcode) ? implode(',', $rawBarcode) : (string)$rawBarcode;
+
+            $formattedProducts[] = [
+                'plu' => $plu,
+                'deskripsi' => $deskripsi,
+                'harga' => $harga,
+                'harga_normal' => $hargaNormal,
+                'harga_promo' => $hargaPromo,
+                'barcode' => $barcodes
+            ];
+        }
+
+        echo json_encode(['status' => 'success', 'data' => $formattedProducts]);
+        exit;
+    }
+
     if ($_POST['action'] === 'set_account') {
         $akun = trim($_POST['akun'] ?? '');
         if (in_array($akun, ['Kasir 1', 'Kasir 2'])) {
@@ -112,26 +167,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     }
 }
 
-$jsonFile = __DIR__ . '/data_produk.json';
-$produkList = [];
-
-if (file_exists($jsonFile)) {
-    $jsonData = file_get_contents($jsonFile);
-    $parsedData = json_decode($jsonData, true);
-
-    if (is_array($parsedData)) {
-        if (isset($parsedData['data']) && is_array($parsedData['data'])) {
-            $produkList = $parsedData['data'];
-        } elseif (isset($parsedData['produk']) && is_array($parsedData['produk'])) {
-            $produkList = $parsedData['produk'];
-        } elseif (isset($parsedData['products']) && is_array($parsedData['products'])) {
-            $produkList = $parsedData['products'];
-        } else {
-            $produkList = $parsedData;
-        }
-    }
-}
-
 $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
 ?>
 <!DOCTYPE html>
@@ -168,6 +203,32 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
             background-color: var(--bg-body);
             color: var(--text-main);
             padding-bottom: 90px;
+        }
+
+        #toastNotification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-100px);
+            background-color: #10b981;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #toastNotification.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
         }
 
         header {
@@ -257,7 +318,7 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
         .modal p {
             font-size: 0.85rem;
             color: var(--text-muted);
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             text-align: center;
         }
 
@@ -328,10 +389,13 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
             display: flex;
             flex-direction: column;
             gap: 8px;
-            max-height: 170px;
+            max-height: 350px;
             overflow-y: auto;
-            margin-bottom: 16px;
+            margin-top: 10px;
             padding-right: 2px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px;
         }
 
         .product-card {
@@ -393,6 +457,8 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
             box-shadow: 0 1px 3px rgba(0,0,0,0.04);
             margin-bottom: 16px;
             border: 1px solid var(--border);
+            max-height: 380px;
+            overflow-y: auto;
         }
 
         .cart-item {
@@ -407,27 +473,56 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
             border-bottom: none;
         }
 
+        .cart-item-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding-right: 8px;
+        }
+
+        .cart-item-plu {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            letter-spacing: 0.03em;
+        }
+
         .cart-item-title {
             font-size: 0.88rem;
             font-weight: 600;
-            flex: 1;
+            color: var(--text-main);
+        }
+
+        .cart-item-unit-price {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .cart-item-unit-price .promo {
+            color: var(--danger);
+            text-decoration: line-through;
+            font-size: 0.72rem;
+            margin-left: 4px;
+            font-weight: normal;
         }
 
         .qty-controls {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin: 0 12px;
+            gap: 6px;
+            margin: 0 8px;
         }
 
         .btn-qty {
             background: #f1f5f9;
             border: none;
-            width: 30px;
-            height: 30px;
+            width: 28px;
+            height: 28px;
             border-radius: 8px;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 0.95rem;
             color: var(--text-main);
             cursor: pointer;
             display: flex;
@@ -438,8 +533,26 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
         .cart-item-price {
             font-size: 0.88rem;
             font-weight: 700;
-            min-width: 80px;
+            min-width: 75px;
             text-align: right;
+            padding-right: 8px;
+        }
+
+        .btn-delete-item {
+            background: none;
+            border: none;
+            color: var(--danger);
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease;
+        }
+
+        .btn-delete-item:hover {
+            background: #fef2f2;
         }
 
         .action-links {
@@ -654,9 +767,35 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
             display: inline-block;
             vertical-align: middle;
         }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
     </style>
 </head>
 <body>
+
+    <div id="toastNotification">
+        <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+        <span id="toastMessage">Berhasil ditambahkan</span>
+    </div>
 
     <!-- Modal Scan Barcode -->
     <div class="modal-overlay" id="scannerModal">
@@ -674,7 +813,7 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
     <div class="modal-overlay" id="paymentModal">
         <div class="modal">
             <h2>Pembayaran Tunai</h2>
-            <p>Masukkan nominal uang tunai dari pembeli</p>
+            <p>Masukkan nominal uang tunai</p>
             
             <div class="pay-info-box">
                 <div class="pay-row">
@@ -683,7 +822,7 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
                 </div>
                 <div style="margin: 12px 0;">
                     <span class="pay-label">Uang Tunai (Rp)</span>
-                    <input type="text" id="cashInput" class="input-pay" placeholder="Rp 0" inputmode="numeric" pattern="[0-9]*" oninput="formatAndCalculateCash(this)">
+                    <input type="text" id="cashInput" class="input-pay" placeholder="Rp 0" enterkeyhint="go" oninput="formatAndCalculateCash(this)">
                 </div>
                 <div class="pay-row">
                     <span class="pay-label">Kembalian</span>
@@ -695,8 +834,26 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
                 <button class="btn-close-modal" type="button" onclick="closePaymentModal()">Batal</button>
                 <button class="btn-confirm-pay" type="button" id="confirmPayBtn" onclick="processCheckout()" disabled>
                     <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
-                    Konfirmasi & Simpan
+                    Simpan Transaksi
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Daftar Produk -->
+    <div class="modal-overlay" id="productListModal">
+        <div class="modal" style="max-width: 600px;">
+            <h2>Daftar Produk</h2>
+            <p>Pilih produk yang tersedia</p>
+            
+            <input type="text" id="modalSearchInput" class="search-box" placeholder="Cari PLU, Barcode, atau nama produk..." enterkeyhint="search" style="margin-bottom: 8px;" oninput="filterModalProducts()">
+            
+            <div class="product-list" id="modalProductList" onscroll="handleModalListScroll(this)">
+                <div class="spinner"></div>
+                <div class="loading-text">Memuat data produk...</div>
+            </div>
+            <div class="modal-footer-btns">
+                <button class="btn-close-modal" onclick="closeProductListModal()">Tutup</button>
             </div>
         </div>
     </div>
@@ -704,7 +861,7 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
     <!-- Modal Daftar Transaksi Akun -->
     <div class="modal-overlay" id="summaryModal">
         <div class="modal">
-            <h2>Daftar Transaksi Akun</h2>
+            <h2>Daftar Transaksi</h2>
             <p>Rekapitulasi seluruh item yang telah ditransaksikan</p>
             <div class="table-container">
                 <table class="summary-table">
@@ -749,75 +906,26 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
 
     <div class="container">
         <div class="search-container">
-            <input type="text" id="searchInput" class="search-box" placeholder="Ketik PLU atau Barcode..." inputmode="numeric" pattern="[0-9]*" oninput="validateSearchInput(this)" onkeydown="handleSearchKey(event)">
+            <input type="text" id="searchInput" class="search-box" placeholder="Ketik PLU atau Barcode..." enterkeyhint="go" oninput="validateSearchInput(this)" onkeydown="handleSearchKey(event)">
             <button class="btn-scan" type="button" onclick="openScannerModal()" title="Scan Barcode">
                 <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
             </button>
         </div>
 
         <div class="section-header">
-            <div class="section-title">Daftar Produk</div>
-        </div>
-
-        <div class="product-list" id="productList">
-            <?php if (is_array($produkList) && !empty($produkList)): ?>
-                <?php foreach ($produkList as $index => $item): ?>
-                    <?php 
-                        if (!is_array($item)) continue;
-
-                        $pluRaw = $item['plu'] ?? '';
-                        $plu = !empty($pluRaw) ? (string)$pluRaw : 'ITEM_' . ($index + 1);
-                        
-                        $deskripsi = $item['deskripsi'] ?? 'Tanpa Nama';
-                        
-                        $hargaNormalRaw = preg_replace('/[^0-9.]/', '', (string)($item['harga_normal'] ?? '0'));
-                        $hargaPromoRaw  = preg_replace('/[^0-9.]/', '', (string)($item['harga_promo'] ?? ''));
-                        
-                        $hargaNormal = floatval($hargaNormalRaw);
-                        $hargaPromo  = !empty($hargaPromoRaw) ? floatval($hargaPromoRaw) : null;
-                        
-                        $harga = (!empty($hargaPromo) && $hargaPromo > 0) ? $hargaPromo : $hargaNormal;
-
-                        $rawBarcode = $item['barcode'] ?? '';
-                        $barcodes = is_array($rawBarcode) ? implode(',', $rawBarcode) : (string)$rawBarcode;
-                    ?>
-                    <div class="product-card" 
-                         data-plu="<?= htmlspecialchars((string)$plu) ?>" 
-                         data-barcode="<?= htmlspecialchars((string)$barcodes) ?>">
-                        <div class="product-info">
-                            <div class="product-title"><?= htmlspecialchars($deskripsi) ?></div>
-                            <div class="product-price">
-                                Rp <?= number_format((float)$harga, 0, ',', '.') ?>
-                                <?php if (!empty($hargaPromo) && $hargaPromo > 0): ?>
-                                    <span class="promo">Rp <?= number_format((float)$hargaNormal, 0, ',', '.') ?></span>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                        <button class="btn-add" type="button" onclick='addToCart(<?= json_encode([
-                            "plu" => (string)$plu,
-                            "deskripsi" => (string)$deskripsi,
-                            "harga" => (float)$harga
-                        ], JSON_HEX_APOS | JSON_HEX_QUOT) ?>)'>
-                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                            Tambah
-                        </button>
-                    </div>
-                <?php endforeach; ?>
-            <?php else: ?>
-                <div class="empty-cart">Data produk tidak ditemukan / format JSON salah.</div>
-            <?php endif; ?>
-        </div>
-
-        <div class="section-header">
             <div class="section-title">Keranjang Belanja</div>
             <div class="action-links">
+                <button class="btn-link btn-link-primary" onclick="showProductListModal()">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+                    Daftar Produk
+                </button>
                 <button class="btn-link btn-link-primary" onclick="showSummaryModal()">
                     <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
-                    Lihat Transaksi
+                    Lihat Data Transaksi
                 </button>
                 <button class="btn-link btn-link-danger" onclick="clearAccountTransactions()">
                     <svg class="svg-icon" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-                    Hapus Transaksi
+                    Hapus Data Transaksi
                 </button>
             </div>
         </div>
@@ -833,7 +941,7 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
             <div class="total-amount" id="totalAmount">Rp 0</div>
         </div>
         <button class="btn-pay" id="payBtn" onclick="openPaymentModal()" disabled>
-            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5-1.5z"/></svg>
             Bayar
         </button>
     </div>
@@ -843,10 +951,57 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
         let currentTotal = 0;
         let rawCashValue = 0;
         let html5QrCode = null;
+        let productsData = [];
+        let filteredProductsData = [];
+        let productsLoaded = false;
+        let toastTimeout = null;
+        let filterDebounce = null;
+        
+        let currentPage = 1;
+        const pageSize = 20;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadProducts();
+        });
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            toastMessage.innerText = message;
+            toast.classList.add('show');
+
+            if (toastTimeout) clearTimeout(toastTimeout);
+
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        function loadProducts() {
+            if (productsLoaded) return;
+
+            const formData = new FormData();
+            formData.append('action', 'get_products');
+
+            fetch('pos_manual.php', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    productsData = data.data;
+                    filteredProductsData = data.data;
+                    productsLoaded = true;
+                } else {
+                    console.error('Gagal memuat produk:', data.message);
+                }
+            })
+            .catch(err => {
+                console.error('Error fetching products:', err);
+            });
+        }
 
         function validateSearchInput(input) {
             input.value = input.value.replace(/[^0-9]/g, '');
-            filterProducts();
         }
 
         function formatAndCalculateCash(input) {
@@ -908,41 +1063,159 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
         function onScanSuccess(decodedText, decodedResult) {
             const cleanText = decodedText.replace(/[^0-9]/g, '');
             document.getElementById('searchInput').value = cleanText;
-            filterProducts();
+            checkAndAddProductByInput(cleanText);
             closeScannerModal();
         }
 
-        function filterProducts() {
-            const query = document.getElementById('searchInput').value.trim().toLowerCase();
-            const cards = document.querySelectorAll('.product-card');
+        function checkAndAddProductByInput(query) {
+            query = query.trim().toLowerCase();
+            if (query === '') return;
 
-            cards.forEach(card => {
-                const plu = card.getAttribute('data-plu').toLowerCase();
-                const barcode = card.getAttribute('data-barcode').toLowerCase();
-
-                if (query !== '' && (plu.includes(query) || barcode.includes(query))) {
-                    card.style.display = 'flex';
-                } else if (query === '') {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
+            const matchedProduct = productsData.find(product => {
+                const plu = String(product.plu).toLowerCase();
+                const barcodes = String(product.barcode).toLowerCase().split(',');
+                return plu === query || barcodes.map(b => b.trim()).includes(query);
             });
+
+            if (matchedProduct) {
+                addToCart(matchedProduct);
+                document.getElementById('searchInput').value = '';
+            } else {
+                alert('Produk dengan PLU / Barcode tersebut tidak ditemukan.');
+            }
         }
 
         function handleSearchKey(event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
-                const visibleCards = Array.from(document.querySelectorAll('.product-card')).filter(card => card.style.display !== 'none');
-                
-                if (visibleCards.length === 1) {
-                    const btnAdd = visibleCards[0].querySelector('.btn-add');
-                    if (btnAdd) btnAdd.click();
-                }
-
-                document.getElementById('searchInput').value = '';
-                filterProducts();
+                const query = document.getElementById('searchInput').value;
+                checkAndAddProductByInput(query);
             }
+        }
+
+        function showProductListModal() {
+            const modalList = document.getElementById('modalProductList');
+            document.getElementById('modalSearchInput').value = '';
+            document.getElementById('productListModal').classList.add('active');
+
+            if (productsLoaded) {
+                filteredProductsData = productsData;
+                currentPage = 1;
+                renderModalProductList(filteredProductsData, true);
+            } else {
+                modalList.innerHTML = `
+                    <div class="spinner"></div>
+                    <div class="loading-text">Memuat data produk...</div>
+                `;
+
+                const formData = new FormData();
+                formData.append('action', 'get_products');
+
+                fetch('pos_manual.php', { method: 'POST', body: formData })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        productsData = data.data;
+                        filteredProductsData = data.data;
+                        productsLoaded = true;
+                        currentPage = 1;
+                        renderModalProductList(filteredProductsData, true);
+                    } else {
+                        modalList.innerHTML = '<div class="empty-cart">Gagal memuat data produk.</div>';
+                    }
+                })
+                .catch(err => {
+                    modalList.innerHTML = '<div class="empty-cart">Terjadi kesalahan koneksi.</div>';
+                });
+            }
+        }
+
+        function filterModalProducts() {
+            if (filterDebounce) clearTimeout(filterDebounce);
+
+            filterDebounce = setTimeout(() => {
+                const query = document.getElementById('modalSearchInput').value.trim().toLowerCase();
+                if (query === '') {
+                    filteredProductsData = productsData;
+                } else {
+                    filteredProductsData = productsData.filter(item => {
+                        const plu = String(item.plu).toLowerCase();
+                        const desc = String(item.deskripsi).toLowerCase();
+                        const barcode = String(item.barcode).toLowerCase();
+                        return plu.includes(query) || desc.includes(query) || barcode.includes(query);
+                    });
+                }
+                currentPage = 1;
+                renderModalProductList(filteredProductsData, true);
+            }, 150);
+        }
+
+        function renderModalProductList(products, reset = false) {
+            const modalList = document.getElementById('modalProductList');
+            
+            if (!products || products.length === 0) {
+                modalList.innerHTML = '<div class="empty-cart">Data produk tidak ditemukan / kosong.</div>';
+                return;
+            }
+
+            const start = (currentPage - 1) * pageSize;
+            const end = start + pageSize;
+            const pagedItems = products.slice(start, end);
+
+            let html = '';
+            pagedItems.forEach(item => {
+                const promoHtml = item.harga_promo && item.harga_promo > 0 
+                    ? `<span class="promo">Rp ${item.harga_normal.toLocaleString('id-ID')}</span>` 
+                    : '';
+
+                const productJson = JSON.stringify({
+                    plu: item.plu,
+                    deskripsi: item.deskripsi,
+                    harga: item.harga,
+                    harga_normal: item.harga_normal,
+                    harga_promo: item.harga_promo
+                }).replace(/'/g, "&apos;");
+
+                html += `
+                    <div class="product-card">
+                        <div class="product-info">
+                            <div class="product-title">${item.deskripsi}</div>
+                            <div class="product-price">
+                                Rp ${item.harga.toLocaleString('id-ID')} ${promoHtml}
+                            </div>
+                        </div>
+                        <button class="btn-add" type="button" onclick='addToCartModal(${productJson})'>
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                            
+                        </button>
+                    </div>
+                `;
+            });
+
+            if (reset) {
+                modalList.innerHTML = html;
+                modalList.scrollTop = 0;
+            } else {
+                modalList.insertAdjacentHTML('beforeend', html);
+            }
+        }
+
+        function handleModalListScroll(container) {
+            if (container.scrollTop + container.clientHeight >= container.scrollHeight - 50) {
+                if (currentPage * pageSize < filteredProductsData.length) {
+                    currentPage++;
+                    renderModalProductList(filteredProductsData, false);
+                }
+            }
+        }
+
+        function closeProductListModal() {
+            document.getElementById('productListModal').classList.remove('active');
+        }
+
+        function addToCartModal(product) {
+            addToCart(product);
+            showToast('Berhasil menambahkan ' + product.deskripsi + ' ke keranjang!');
         }
 
         function addToCart(product) {
@@ -953,23 +1226,29 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
 
             const pluStr = String(product.plu);
             const hargaNum = parseFloat(product.harga) || 0;
-            const existing = cart.find(item => String(item.plu) === pluStr);
+            const existingIndex = cart.findIndex(item => String(item.plu) === pluStr);
 
-            if (existing) {
-                existing.qty += 1;
+            if (existingIndex !== -1) {
+                const existingItem = cart.splice(existingIndex, 1)[0];
+                existingItem.qty += 1;
+                cart.unshift(existingItem);
             } else {
-                cart.push({
+                cart.unshift({
                     plu: pluStr,
                     deskripsi: product.deskripsi || 'Tanpa Nama',
                     harga: hargaNum,
+                    harga_normal: product.harga_normal || hargaNum,
+                    harga_promo: product.harga_promo || null,
                     qty: 1
                 });
             }
 
             renderCart();
-
-            document.getElementById('searchInput').value = '';
-            filterProducts();
+            
+            const cartList = document.getElementById('cartList');
+            if (cartList) {
+                cartList.scrollTop = 0;
+            }
         }
 
         function updateQty(plu, change) {
@@ -983,6 +1262,12 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
                 cart = cart.filter(i => String(i.plu) !== pluStr);
             }
 
+            renderCart();
+        }
+
+        function removeFromCart(plu) {
+            const pluStr = String(plu);
+            cart = cart.filter(i => String(i.plu) !== pluStr);
             renderCart();
         }
 
@@ -1006,15 +1291,26 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
                 const subtotal = item.harga * item.qty;
                 total += subtotal;
 
+                const promoPriceHtml = item.harga_promo && item.harga_promo > 0
+                    ? `Rp ${item.harga.toLocaleString('id-ID')} <span class="promo">Rp ${item.harga_normal.toLocaleString('id-ID')}</span>`
+                    : `Rp ${item.harga.toLocaleString('id-ID')}`;
+
                 html += `
                     <div class="cart-item">
-                        <div class="cart-item-title">${item.deskripsi}</div>
+                        <div class="cart-item-details">
+                            <span class="cart-item-plu">${item.plu}</span>
+                            <span class="cart-item-title">${item.deskripsi}</span>
+                            <span class="cart-item-unit-price">${promoPriceHtml}</span>
+                        </div>
                         <div class="qty-controls">
                             <button class="btn-qty" type="button" onclick="updateQty('${item.plu}', -1)">-</button>
                             <span>${item.qty}</span>
                             <button class="btn-qty" type="button" onclick="updateQty('${item.plu}', 1)">+</button>
                         </div>
                         <div class="cart-item-price">Rp ${subtotal.toLocaleString('id-ID')}</div>
+                        <button class="btn-delete-item" type="button" onclick="removeFromCart('${item.plu}')" title="Hapus Item">
+                            <svg class="svg-icon" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                        </button>
                     </div>
                 `;
             });
@@ -1074,7 +1370,6 @@ $akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
                     renderCart();
                     closePaymentModal();
                     document.getElementById('searchInput').value = '';
-                    filterProducts();
                 } else {
                     alert('Gagal menyimpan transaksi: ' + data.message);
                 }
