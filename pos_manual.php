@@ -132,7 +132,7 @@ if (file_exists($jsonFile)) {
     }
 }
 
-$akunAktif = $_SESSION['akun'] ?? null;
+$akunAktif = $_SESSION['akun'] ?? 'Kasir 1';
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -162,7 +162,6 @@ $akunAktif = $_SESSION['akun'] ?? null;
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
-            touch-action: manipulation;
         }
 
         body {
@@ -174,7 +173,7 @@ $akunAktif = $_SESSION['akun'] ?? null;
         header {
             background: linear-gradient(135deg, #4f46e5, #3b82f6);
             color: #fff;
-            padding: 14px 16px;
+            padding: 12px 16px;
             position: sticky;
             top: 0;
             z-index: 100;
@@ -190,21 +189,29 @@ $akunAktif = $_SESSION['akun'] ?? null;
             letter-spacing: -0.02em;
         }
 
-        .badge-akun {
-            background: rgba(255, 255, 255, 0.18);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            backdrop-filter: blur(8px);
-            font-weight: 600;
+        .account-selector {
             display: flex;
             align-items: center;
-            gap: 6px;
-            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 6px;
+            border-radius: 8px;
+            backdrop-filter: blur(8px);
         }
 
-        .badge-akun:hover {
-            background: rgba(255, 255, 255, 0.28);
+        .account-select-dropdown {
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.85rem;
+            padding: 4px 6px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .account-select-dropdown option {
+            background: #ffffff;
+            color: var(--text-main);
         }
 
         .modal-overlay {
@@ -219,7 +226,7 @@ $akunAktif = $_SESSION['akun'] ?? null;
             padding: 16px;
             opacity: 0;
             visibility: hidden;
-            transition: all 0.25s ease-in-out;
+            transition: all 0.2s ease;
         }
 
         .modal-overlay.active {
@@ -233,16 +240,10 @@ $akunAktif = $_SESSION['akun'] ?? null;
             max-width: 440px;
             border-radius: 16px;
             padding: 20px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
             max-height: 85vh;
             display: flex;
             flex-direction: column;
-            transform: scale(0.95) translateY(10px);
-            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .modal-overlay.active .modal {
-            transform: scale(1) translateY(0);
         }
 
         .modal h2 {
@@ -258,35 +259,6 @@ $akunAktif = $_SESSION['akun'] ?? null;
             color: var(--text-muted);
             margin-bottom: 16px;
             text-align: center;
-        }
-
-        .account-btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-
-        .btn-account {
-            padding: 14px;
-            border: 2px solid var(--border);
-            background: #fff;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-main);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-account:hover, .btn-account:active {
-            border-color: var(--primary);
-            background-color: #f0fdf4;
-            color: var(--primary);
-            transform: translateY(-1px);
         }
 
         .container {
@@ -310,13 +282,11 @@ $akunAktif = $_SESSION['akun'] ?? null;
             outline: none;
             background: #fff;
             box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-            transition: all 0.2s ease;
-            margin-bottom: 0;
+            transition: border-color 0.2s ease;
         }
 
         .search-box:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
         }
 
         .btn-scan {
@@ -329,15 +299,6 @@ $akunAktif = $_SESSION['akun'] ?? null;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
-        }
-
-        .btn-scan:hover {
-            background-color: var(--primary-hover);
-        }
-
-        .btn-scan:active {
-            transform: scale(0.96);
         }
 
         #reader {
@@ -383,12 +344,6 @@ $akunAktif = $_SESSION['akun'] ?? null;
             box-shadow: 0 1px 3px rgba(0,0,0,0.04);
             border: 1px solid var(--border);
             min-height: 70px;
-            transition: all 0.2s ease;
-        }
-
-        .product-card:hover {
-            border-color: #cbd5e1;
-            transform: translateY(-1px);
         }
 
         .product-info {
@@ -426,18 +381,9 @@ $akunAktif = $_SESSION['akun'] ?? null;
             font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.15s ease;
             display: flex;
             align-items: center;
             gap: 4px;
-        }
-
-        .btn-add:hover {
-            background-color: var(--primary-hover);
-        }
-
-        .btn-add:active {
-            transform: scale(0.96);
         }
 
         .cart-list {
@@ -455,7 +401,6 @@ $akunAktif = $_SESSION['akun'] ?? null;
             align-items: center;
             padding: 10px 0;
             border-bottom: 1px solid var(--border);
-            animation: fadeIn 0.2s ease;
         }
 
         .cart-item:last-child {
@@ -488,15 +433,6 @@ $akunAktif = $_SESSION['akun'] ?? null;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.15s ease;
-        }
-
-        .btn-qty:hover {
-            background: #e2e8f0;
-        }
-
-        .btn-qty:active {
-            transform: scale(0.92);
         }
 
         .cart-item-price {
@@ -521,10 +457,8 @@ $akunAktif = $_SESSION['akun'] ?? null;
             display: flex;
             align-items: center;
             gap: 4px;
-            transition: opacity 0.15s ease;
         }
 
-        .btn-link:hover { opacity: 0.8; }
         .btn-link-primary { color: var(--primary); }
         .btn-link-danger { color: var(--danger); }
 
@@ -567,12 +501,6 @@ $akunAktif = $_SESSION['akun'] ?? null;
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: all 0.2s ease;
-        }
-
-        .btn-pay:hover:not(:disabled) {
-            background-color: var(--success-hover);
-            transform: translateY(-1px);
         }
 
         .btn-pay:disabled {
@@ -614,10 +542,6 @@ $akunAktif = $_SESSION['akun'] ?? null;
             border-bottom: 1px solid var(--border);
         }
 
-        .summary-table tr:last-child td {
-            border-bottom: none;
-        }
-
         .summary-table tfoot tr td {
             background-color: #f8fafc;
             font-weight: 700;
@@ -645,10 +569,7 @@ $akunAktif = $_SESSION['akun'] ?? null;
             align-items: center;
             justify-content: center;
             gap: 6px;
-            transition: background 0.15s ease;
         }
-
-        .btn-copy-modal:hover { background-color: var(--primary-hover); }
 
         .btn-close-modal {
             background-color: #e2e8f0;
@@ -659,10 +580,7 @@ $akunAktif = $_SESSION['akun'] ?? null;
             font-weight: 600;
             cursor: pointer;
             flex: 1;
-            transition: background 0.15s ease;
         }
-
-        .btn-close-modal:hover { background-color: #cbd5e1; }
 
         .pay-info-box {
             background: #f8fafc;
@@ -677,10 +595,6 @@ $akunAktif = $_SESSION['akun'] ?? null;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 12px;
-        }
-
-        .pay-row:last-child {
-            margin-bottom: 0;
         }
 
         .pay-label {
@@ -710,11 +624,6 @@ $akunAktif = $_SESSION['akun'] ?? null;
             border-radius: 10px;
             outline: none;
             margin-top: 4px;
-            transition: border-color 0.2s ease;
-        }
-
-        .input-pay:focus {
-            border-color: var(--primary);
         }
 
         .btn-confirm-pay {
@@ -731,11 +640,6 @@ $akunAktif = $_SESSION['akun'] ?? null;
             align-items: center;
             justify-content: center;
             gap: 6px;
-            transition: all 0.15s ease;
-        }
-
-        .btn-confirm-pay:hover:not(:disabled) {
-            background-color: var(--success-hover);
         }
 
         .btn-confirm-pay:disabled {
@@ -749,11 +653,6 @@ $akunAktif = $_SESSION['akun'] ?? null;
             fill: currentColor;
             display: inline-block;
             vertical-align: middle;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(4px); }
-            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
@@ -771,24 +670,6 @@ $akunAktif = $_SESSION['akun'] ?? null;
         </div>
     </div>
 
-    <!-- Modal Pilihan Akun -->
-    <div class="modal-overlay <?= empty($akunAktif) ? 'active' : '' ?>" id="accountModal">
-        <div class="modal">
-            <h2>Pilih Akun Kasir</h2>
-            <p>Silakan pilih akun untuk memulai sesi transaksi</p>
-            <div class="account-btn-group">
-                <button class="btn-account" type="button" onclick="selectAccount('Kasir 1')">
-                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 2a5 5 0 105 5 5 5 0 00-5-5zm0 8a3 3 0 113-3 3 3 0 01-3 3zm0 4c-4.42 0-8 2.24-8 5v1a1 1 0 001 1h14a1 1 0 001-1v-1c0-2.76-3.58-5-8-5zm-6 5c.22-1.38 2.82-3 6-3s5.78 1.62 6 3z"/></svg>
-                    Kasir 1
-                </button>
-                <button class="btn-account" type="button" onclick="selectAccount('Kasir 2')">
-                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 2a5 5 0 105 5 5 5 0 00-5-5zm0 8a3 3 0 113-3 3 3 0 01-3 3zm0 4c-4.42 0-8 2.24-8 5v1a1 1 0 001 1h14a1 1 0 001-1v-1c0-2.76-3.58-5-8-5zm-6 5c.22-1.38 2.82-3 6-3s5.78 1.62 6 3z"/></svg>
-                    Kasir 2
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- Modal Pembayaran -->
     <div class="modal-overlay" id="paymentModal">
         <div class="modal">
@@ -802,7 +683,7 @@ $akunAktif = $_SESSION['akun'] ?? null;
                 </div>
                 <div style="margin: 12px 0;">
                     <span class="pay-label">Uang Tunai (Rp)</span>
-                    <input type="number" id="cashInput" class="input-pay" placeholder="0" oninput="calculateChange()">
+                    <input type="text" id="cashInput" class="input-pay" placeholder="Rp 0" inputmode="numeric" pattern="[0-9]*" oninput="formatAndCalculateCash(this)">
                 </div>
                 <div class="pay-row">
                     <span class="pay-label">Kembalian</span>
@@ -857,15 +738,18 @@ $akunAktif = $_SESSION['akun'] ?? null;
 
     <header>
         <h1>POS Kasir Manualan</h1>
-        <div class="badge-akun" onclick="switchAccount()" style="cursor: pointer;">
+        <div class="account-selector">
             <svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 2a5 5 0 105 5 5 5 0 00-5-5zm0 8a3 3 0 113-3 3 3 0 01-3 3zm0 4c-4.42 0-8 2.24-8 5v1a1 1 0 001 1h14a1 1 0 001-1v-1c0-2.76-3.58-5-8-5zm-6 5c.22-1.38 2.82-3 6-3s5.78 1.62 6 3z"/></svg>
-            <?= htmlspecialchars($akunAktif ?? 'Pilih Akun') ?>
+            <select class="account-select-dropdown" onchange="changeAccountDirectly(this.value)">
+                <option value="Kasir 1" <?= $akunAktif === 'Kasir 1' ? 'selected' : '' ?>>Kasir 1</option>
+                <option value="Kasir 2" <?= $akunAktif === 'Kasir 2' ? 'selected' : '' ?>>Kasir 2</option>
+            </select>
         </div>
     </header>
 
     <div class="container">
         <div class="search-container">
-            <input type="text" id="searchInput" class="search-box" placeholder="Ketik PLU atau Barcode..." onkeyup="filterProducts()" onkeydown="handleSearchKey(event)">
+            <input type="text" id="searchInput" class="search-box" placeholder="Ketik PLU atau Barcode..." inputmode="numeric" pattern="[0-9]*" oninput="validateSearchInput(this)" onkeydown="handleSearchKey(event)">
             <button class="btn-scan" type="button" onclick="openScannerModal()" title="Scan Barcode">
                 <svg class="svg-icon" viewBox="0 0 24 24"><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
             </button>
@@ -957,7 +841,43 @@ $akunAktif = $_SESSION['akun'] ?? null;
     <script>
         let cart = [];
         let currentTotal = 0;
+        let rawCashValue = 0;
         let html5QrCode = null;
+
+        function validateSearchInput(input) {
+            input.value = input.value.replace(/[^0-9]/g, '');
+            filterProducts();
+        }
+
+        function formatAndCalculateCash(input) {
+            let value = input.value.replace(/[^0-9]/g, '');
+            rawCashValue = parseFloat(value) || 0;
+
+            if (value === '' || rawCashValue === 0) {
+                input.value = '';
+            } else {
+                input.value = 'Rp ' + rawCashValue.toLocaleString('id-ID');
+            }
+
+            calculateChange();
+        }
+
+        function changeAccountDirectly(namaAkun) {
+            const formData = new FormData();
+            formData.append('action', 'set_account');
+            formData.append('akun', namaAkun);
+
+            fetch('pos_manual.php', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status !== 'success') {
+                    alert('Gagal memilih akun: ' + (data.message || 'Terjadi kesalahan.'));
+                }
+            })
+            .catch(err => {
+                console.error(err);
+            });
+        }
 
         function openScannerModal() {
             document.getElementById('scannerModal').classList.add('active');
@@ -986,46 +906,10 @@ $akunAktif = $_SESSION['akun'] ?? null;
         }
 
         function onScanSuccess(decodedText, decodedResult) {
-            document.getElementById('searchInput').value = decodedText;
+            const cleanText = decodedText.replace(/[^0-9]/g, '');
+            document.getElementById('searchInput').value = cleanText;
             filterProducts();
             closeScannerModal();
-        }
-
-        function selectAccount(namaAkun) {
-            const formData = new FormData();
-            formData.append('action', 'set_account');
-            formData.append('akun', namaAkun);
-
-            fetch('pos_manual.php', { method: 'POST', body: formData })
-            .then(res => res.text())
-            .then(text => {
-                try {
-                    const data = JSON.parse(text);
-                    if (data.status === 'success') {
-                        window.location.reload();
-                    } else {
-                        alert('Gagal memilih akun: ' + (data.message || 'Terjadi kesalahan.'));
-                    }
-                } catch(e) {
-                    alert('Respon Server Rusak: ' + text);
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert('Terjadi kesalahan jaringan.');
-            });
-        }
-
-        function switchAccount() {
-            if (confirm('Ubah akun kasir aktif?')) {
-                const formData = new FormData();
-                formData.append('action', 'set_account');
-                formData.append('akun', 'RESET');
-                fetch('pos_manual.php', { method: 'POST', body: formData })
-                .then(() => {
-                    window.location.reload();
-                });
-            }
         }
 
         function filterProducts() {
@@ -1049,6 +933,13 @@ $akunAktif = $_SESSION['akun'] ?? null;
         function handleSearchKey(event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
+                const visibleCards = Array.from(document.querySelectorAll('.product-card')).filter(card => card.style.display !== 'none');
+                
+                if (visibleCards.length === 1) {
+                    const btnAdd = visibleCards[0].querySelector('.btn-add');
+                    if (btnAdd) btnAdd.click();
+                }
+
                 document.getElementById('searchInput').value = '';
                 filterProducts();
             }
@@ -1138,6 +1029,7 @@ $akunAktif = $_SESSION['akun'] ?? null;
             if (cart.length === 0) return;
             document.getElementById('payTotalText').innerText = 'Rp ' + currentTotal.toLocaleString('id-ID');
             document.getElementById('cashInput').value = '';
+            rawCashValue = 0;
             document.getElementById('changeText').innerText = 'Rp 0';
             document.getElementById('confirmPayBtn').disabled = true;
             document.getElementById('paymentModal').classList.add('active');
@@ -1149,7 +1041,7 @@ $akunAktif = $_SESSION['akun'] ?? null;
         }
 
         function calculateChange() {
-            const cash = parseFloat(document.getElementById('cashInput').value) || 0;
+            const cash = rawCashValue;
             const change = cash - currentTotal;
             const changeText = document.getElementById('changeText');
             const confirmBtn = document.getElementById('confirmPayBtn');
