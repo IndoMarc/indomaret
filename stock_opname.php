@@ -1023,15 +1023,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
 
         .modal-input {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 700;
-            padding: 10px;
+            padding: 8px 10px;
             border: 1px solid #cbd5e1;
             border-radius: 6px;
             background: #f8fafc;
             width: 100%;
             text-align: center;
             color: #0f172a;
+        }
+
+        .numpad-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin-top: 2px;
+            margin-bottom: 2px;
+        }
+
+        .btn-num {
+            background-color: #f1f5f9;
+            color: #0f172a;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 10px 0;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.15s, transform 0.05s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-num:active {
+            background-color: #cbd5e1;
+            transform: scale(0.96);
+        }
+
+        .btn-num-del {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border-color: #fca5a5;
+        }
+
+        .btn-num-del:active {
+            background-color: #fca5a5;
+        }
+
+        .btn-num-clear {
+            background-color: #fef3c7;
+            color: #92400e;
+            border-color: #fde68a;
+        }
+
+        .btn-num-clear:active {
+            background-color: #fde68a;
         }
 
         .modal-action-btns {
@@ -1495,7 +1544,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             </div>
             <div class="modal-body">
                 <label for="modalInputValue">Jumlah Input:</label>
-                <input type="text" id="modalInputValue" class="modal-input" inputmode="numeric" pattern="[0-9]*" placeholder="0" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                <input type="text" id="modalInputValue" class="modal-input" readonly placeholder="0">
+                
                 <div class="modal-action-btns">
                     <button type="button" id="btnModalMinus" class="btn-action-modal btn-minus">
                         <i data-lucide="minus" style="width: 16px; height: 16px;"></i> Kurang
@@ -1504,6 +1554,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                         <i data-lucide="plus" style="width: 16px; height: 16px;"></i> Tambah
                     </button>
                 </div>
+
+                <div class="numpad-container">
+                    <button type="button" class="btn-num" data-num="1">1</button>
+                    <button type="button" class="btn-num" data-num="2">2</button>
+                    <button type="button" class="btn-num" data-num="3">3</button>
+                    <button type="button" class="btn-num" data-num="4">4</button>
+                    <button type="button" class="btn-num" data-num="5">5</button>
+                    <button type="button" class="btn-num" data-num="6">6</button>
+                    <button type="button" class="btn-num" data-num="7">7</button>
+                    <button type="button" class="btn-num" data-num="8">8</button>
+                    <button type="button" class="btn-num" data-num="9">9</button>
+                    <button type="button" class="btn-num btn-num-clear" id="btnNumClear">C</button>
+                    <button type="button" class="btn-num" data-num="0">0</button>
+                    <button type="button" class="btn-num btn-num-del" id="btnNumDel"><i data-lucide="delete" style="width: 18px; height: 18px;"></i></button>
+                </div>
+
                 <button type="button" id="btnModalClose" class="btn-close-modal">Close</button>
             </div>
         </div>
@@ -1614,6 +1680,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         const btnModalMinus = document.getElementById('btnModalMinus');
         const btnModalPlus = document.getElementById('btnModalPlus');
         const btnModalClose = document.getElementById('btnModalClose');
+        const numBtns = document.querySelectorAll('.btn-num[data-num]');
+        const btnNumClear = document.getElementById('btnNumClear');
+        const btnNumDel = document.getElementById('btnNumDel');
 
         const scanModal = document.getElementById('scanModal');
         const btnCloseScanModal = document.getElementById('btnCloseScanModal');
@@ -1634,6 +1703,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         let currentSelisihSearchResult = [];
         let rawAdminRowsData = [];
         let toastTimeout = null;
+
+        numBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const val = this.getAttribute('data-num');
+                if (modalInputValue.value === '0' || modalInputValue.value === '') {
+                    modalInputValue.value = val;
+                } else {
+                    modalInputValue.value += val;
+                }
+            });
+        });
+
+        btnNumClear.addEventListener('click', function() {
+            modalInputValue.value = '';
+        });
+
+        btnNumDel.addEventListener('click', function() {
+            modalInputValue.value = modalInputValue.value.slice(0, -1);
+        });
 
         function showToast(message, type = 'success') {
             if (toastTimeout) clearTimeout(toastTimeout);
@@ -2614,19 +2702,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
                 const valFisik = item.STOK_FISIK !== undefined ? item.STOK_FISIK : '';
                 
+                const currentFisikVal = item.STOK_FISIK !== undefined ? item.STOK_FISIK : 0;
+                const diff = currentFisikVal - stokLpp;
                 let selisihStr = '';
                 let selisihClass = '';
-                if (item.STOK_FISIK !== undefined) {
-                    const diff = item.STOK_FISIK - stokLpp;
-                    if (diff > 0) {
-                        selisihStr = `+${diff}`;
-                        selisihClass = 'badge-selisih-positif';
-                    } else if (diff < 0) {
-                        selisihStr = `${diff}`;
-                        selisihClass = 'badge-selisih-negatif';
-                    } else {
-                        selisihStr = '0';
-                    }
+                if (diff > 0) {
+                    selisihStr = `+${diff}`;
+                    selisihClass = 'badge-selisih-positif';
+                } else if (diff < 0) {
+                    selisihStr = `${diff}`;
+                    selisihClass = 'badge-selisih-negatif';
+                } else {
+                    selisihStr = '0';
                 }
 
                 const historyStr = (item.INPUT_HISTORY && item.INPUT_HISTORY.length > 0) ? item.INPUT_HISTORY.join('') : '';
@@ -3111,6 +3198,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         btnResetHasilAkhir.addEventListener('click', resetAccountData);
 
         function openInputModalByKey(uniqueKey) {
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
+
             activeItemKey = uniqueKey;
             
             const item = globalProcessedItems.find(it => getItemUniqueKey(it) === uniqueKey);
@@ -3124,9 +3215,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             modalInputValue.value = '';
 
             inputModal.classList.add('active');
-            setTimeout(() => {
-                modalInputValue.focus();
-            }, 100);
         }
 
         function closeModal() {
@@ -3169,35 +3257,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             }
 
             item.STOK_FISIK = currentFisik;
-            lastUpdatedPlumdKey = getItemUniqueKey(item);
+            const updatedTargetKey = getItemUniqueKey(item);
+            lastUpdatedPlumdKey = updatedTargetKey;
 
             await saveInputStateToCache();
 
-            const activeQuery = searchInput.value.trim();
-            if (activeQuery !== '') {
-                const searchedItems = currentFilteredItems.filter(it => {
-                    const plumd = String(it.PLUMD || '');
-                    if (plumd.includes(activeQuery)) return true;
-
-                    const barcodes = plumdToBarcodesMap.get(plumd);
-                    if (barcodes) {
-                        for (let barcd of barcodes) {
-                            if (barcd.includes(activeQuery)) return true;
-                        }
-                    }
-                    return false;
-                });
-                renderTable(searchedItems);
-            } else {
-                renderTable(currentFilteredItems);
-            }
-
-            const targetRow = document.getElementById(`rowItem_${escapeHtml(activeItemKey)}`);
-            if (targetRow) {
-                targetRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-
             closeModal();
+
+            searchInput.value = '';
+            renderTable(currentFilteredItems);
+
+            setTimeout(() => {
+                const targetRow = document.getElementById(`rowItem_${escapeHtml(updatedTargetKey)}`);
+                if (targetRow) {
+                    targetRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
         }
 
         btnModalPlus.addEventListener('click', function() {
