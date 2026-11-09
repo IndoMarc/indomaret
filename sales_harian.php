@@ -20,6 +20,7 @@ $bulan_names = [
     9 => 'September', 10 => 'Oktober', 11 => 'November', 12 => 'Desember'
 ];
 
+$current_day = (int) date('j');
 $current_month = (int) date('n');
 $current_year = (int) date('Y');
 
@@ -108,13 +109,45 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Laporan Sales</title>
+    <title>Laporan Sales Harian</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap" rel="stylesheet">
 
     <style>
+        :root {
+            --bg-color: #faf9f5;
+            --card-bg: #ffffff;
+            --border: #e8e6dc;
+            --border-strong: #d6d3c4;
+            --text-main: #29261b;
+            --text-sub: #6f6d63;
+            --accent: #c96442;
+            --accent-hover: #b5573a;
+            --accent-soft: #f4e9e2;
+            --item-bg: #ffffff;
+            --item-hover: #f5f4ee;
+            --shadow: 0 1px 2px rgba(41, 38, 27, 0.04), 0 4px 16px rgba(41, 38, 27, 0.04);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #262624;
+                --card-bg: #30302e;
+                --border: #3d3d3a;
+                --border-strong: #52514d;
+                --text-main: #f0eee6;
+                --text-sub: #a8a69b;
+                --accent: #d97757;
+                --accent-hover: #e48a6b;
+                --accent-soft: #3d332e;
+                --item-bg: #30302e;
+                --item-hover: #3a3a37;
+                --shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 4px 16px rgba(0, 0, 0, 0.2);
+            }
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -123,33 +156,36 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f4f6f9;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--bg-color);
             min-height: 100vh;
-            color: #334155;
+            color: var(--text-main);
             -webkit-font-smoothing: antialiased;
+            padding: 24px 16px;
         }
 
         .container {
-            padding: 15px;
             max-width: 1440px;
+            width: 100%;
             margin: 0 auto;
         }
 
         .search-input {
             padding: 10px 14px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-size: 16px;
-            font-family: 'Inter', sans-serif;
+            border: 1px solid var(--border-strong);
+            border-radius: 10px;
+            font-size: 14px;
+            font-family: inherit;
+            background-color: var(--item-bg);
+            color: var(--text-main);
             box-sizing: border-box;
             outline: none;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         .search-input:focus {
-            border-color: #0284c7;
-            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
         }
 
         .custom-select-wrapper {
@@ -161,24 +197,24 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
             appearance: none;
             -webkit-appearance: none;
             -moz-appearance: none;
-            background-color: #ffffff;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
+            background-color: var(--item-bg);
+            border: 1px solid var(--border-strong);
+            border-radius: 10px;
             padding: 9px 36px 9px 14px;
             font-size: 14px;
-            font-weight: 600;
-            font-family: 'Inter', sans-serif;
-            color: #0f172a;
+            font-weight: 500;
+            font-family: inherit;
+            color: var(--text-main);
             cursor: pointer;
             outline: none;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            box-shadow: var(--shadow);
             transition: all 0.2s ease;
         }
 
         .custom-select-wrapper select:focus,
         .custom-select-wrapper select:hover {
-            border-color: #0284c7;
-            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-soft);
         }
 
         .custom-select-wrapper::after {
@@ -191,36 +227,39 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
             height: 0;
             border-left: 5px solid transparent;
             border-right: 5px solid transparent;
-            border-top: 5px solid #64748b;
+            border-top: 5px solid var(--text-sub);
             pointer-events: none;
         }
 
         .btn-submit {
-            background-color: #0284c7;
+            background-color: var(--accent);
             color: #ffffff;
             border: none;
-            border-radius: 8px;
-            padding: 10px 24px;
+            border-radius: 10px;
+            padding: 11px 24px;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
-            box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2);
-            transition: all 0.2s ease;
+            box-shadow: var(--shadow);
+            transition: background 0.2s ease, transform 0.2s ease;
         }
 
         .btn-submit:hover {
-            background-color: #0369a1;
-            box-shadow: 0 4px 6px rgba(2, 132, 199, 0.3);
+            background-color: var(--accent-hover);
+        }
+
+        .btn-submit:active {
+            transform: scale(0.99);
         }
 
         .btn-collapse {
-            background-color: #ffffff;
-            color: #475569;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
+            background-color: var(--item-bg);
+            color: var(--text-sub);
+            border: 1px solid var(--border);
+            border-radius: 8px;
             padding: 6px 12px;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.2s;
             display: inline-flex;
@@ -229,40 +268,48 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
         }
 
         .btn-collapse:hover {
-            background-color: #f1f5f9;
-            color: #0f172a;
+            background-color: var(--item-hover);
+            color: var(--text-main);
+            border-color: var(--border-strong);
         }
 
         .error {
-            color: #dc2626;
+            color: #e5534b;
             font-weight: 500;
-            padding: 10px;
-            background-color: #fef2f2;
-            border: 1px solid #fecaca;
-            border-radius: 6px;
+            padding: 12px;
+            background-color: rgba(229, 83, 75, 0.1);
+            border: 1px solid rgba(229, 83, 75, 0.2);
+            border-radius: 10px;
             text-align: center;
-            font-size: 13px;
+            font-size: 14px;
+        }
+
+        .sales-header-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 24px;
         }
 
         .sales-title-header {
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-size: 24px;
+            font-weight: 500;
+            color: var(--text-main);
+            letter-spacing: -0.4px;
             text-align: center;
-            font-size: 20px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-bottom: 20px;
-            letter-spacing: -0.5px;
         }
 
         .target-section-sales {
             display: flex;
             flex-direction: column;
             gap: 16px;
-            background-color: #ffffff;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 16px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            border: 1px solid #e2e8f0;
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
             transition: all 0.3s ease;
         }
 
@@ -273,9 +320,10 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
         }
 
         .target-section-title {
-            font-size: 15px;
-            font-weight: 600;
-            color: #0f172a;
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-main);
         }
 
         .target-section-content {
@@ -310,6 +358,8 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
             justify-content: space-between;
             gap: 10px;
             width: 100%;
+            font-size: 14px;
+            color: var(--text-sub);
         }
 
         @media (min-width: 640px) {
@@ -322,7 +372,7 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
         .input-currency-sales {
             text-align: right !important;
             font-weight: 600;
-            width: 140px;
+            width: 160px;
         }
 
         .btn-sales-actions {
@@ -331,17 +381,17 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
             align-items: center;
             justify-content: center;
             width: 100%;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
 
         .table-container-sales {
-            background-color: #ffffff;
-            border-radius: 12px;
+            background-color: var(--card-bg);
+            border-radius: 16px;
             overflow: auto;
-            max-height: 75vh;
+            max-height: 70vh;
             -webkit-overflow-scrolling: touch;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            border: 1px solid #e2e8f0;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
             width: 100%;
         }
 
@@ -354,9 +404,9 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
         }
 
         table.main-table-sales th, table.main-table-sales td { 
-            border-right: 1px solid #e2e8f0; 
-            border-bottom: 1px solid #e2e8f0; 
-            padding: 8px 10px; 
+            border-right: 1px solid var(--border); 
+            border-bottom: 1px solid var(--border); 
+            padding: 10px 12px; 
             text-align: center; 
             vertical-align: middle;
         }
@@ -366,8 +416,8 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
         }
 
         table.main-table-sales th { 
-            background-color: #f8fafc; 
-            color: #0f172a;
+            background-color: var(--item-hover); 
+            color: var(--text-main);
             font-weight: 600;
             font-size: 12px;
             letter-spacing: 0.3px;
@@ -381,37 +431,50 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
         }
 
         table.main-table-sales thead tr:nth-child(2) th {
-            top: 34px;
+            top: 38px;
         }
 
         table.main-table-sales tbody tr:hover {
-            background-color: #f8fafc;
+            background-color: var(--item-hover);
+        }
+
+        table.main-table-sales tbody tr.row-hari-h {
+            background-color: var(--accent-soft) !important;
         }
 
         table.main-table-sales td.tgl-col { 
             font-weight: 600;
-            color: #0f172a;
-            background-color: #fafafa;
+            color: var(--text-main);
+            background-color: var(--item-bg);
             cursor: pointer;
         }
 
+        table.main-table-sales tr.row-hari-h td.tgl-col {
+            background-color: var(--accent-soft) !important;
+            color: var(--accent) !important;
+        }
+
         .input-table-sales {
-            width: 100px;
+            width: 110px;
             padding: 6px 8px;
-            border: 1px solid #e2e8f0;
-            border-radius: 5px;
+            border: 1px solid var(--border-strong);
+            background-color: var(--item-bg);
+            color: var(--text-main);
+            border-radius: 6px;
             text-align: right;
-            font-family: 'Inter', sans-serif;
+            font-family: inherit;
             font-size: 13px;
         }
 
         .input-table-struk-sales {
-            width: 65px;
+            width: 70px;
             padding: 6px 8px;
-            border: 1px solid #e2e8f0;
-            border-radius: 5px;
+            border: 1px solid var(--border-strong);
+            background-color: var(--item-bg);
+            color: var(--text-main);
+            border-radius: 6px;
             text-align: right;
-            font-family: 'Inter', sans-serif;
+            font-family: inherit;
             font-size: 13px;
         }
 
@@ -419,17 +482,14 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
             width: 75px;
         }
 
-        .badge-positive-sales { color: #16a34a; font-weight: 600; }
-        .badge-negative-sales { color: #dc2626; font-weight: 600; }
+        .badge-positive-sales { color: #2e8b57; font-weight: 600; }
+        .badge-negative-sales { color: #e5534b; font-weight: 600; }
 
         .modal-overlay-sales {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(15, 23, 42, 0.4);
+            inset: 0;
+            background: rgba(41, 38, 27, 0.45);
             backdrop-filter: blur(4px);
             -webkit-backdrop-filter: blur(4px);
             z-index: 9999;
@@ -443,13 +503,13 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
         }
 
         .modal-card-sales {
-            background: #ffffff;
-            border-radius: 16px;
+            background: var(--card-bg);
+            border-radius: 20px;
             width: 100%;
-            max-width: 320px;
-            padding: 20px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e2e8f0;
+            max-width: 340px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--border);
             transform: scale(0.95);
             transition: transform 0.2s ease;
             position: relative;
@@ -461,34 +521,33 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
 
         .btn-modal-close-x-sales {
             position: absolute;
-            top: 14px;
-            right: 14px;
+            top: 16px;
+            right: 16px;
             background: transparent;
             border: none;
-            color: #94a3b8;
+            color: var(--text-sub);
             font-size: 20px;
             font-weight: 600;
             cursor: pointer;
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 50%;
             transition: all 0.15s ease;
-            line-height: 1;
         }
 
         .btn-modal-close-x-sales:hover {
-            background-color: #f1f5f9;
-            color: #0f172a;
+            background-color: var(--item-hover);
+            color: var(--text-main);
         }
 
         .modal-body-sales {
             display: flex;
             flex-direction: column;
             gap: 16px;
-            margin-top: 6px;
+            margin-top: 4px;
         }
 
         .modal-info-group-sales {
@@ -498,15 +557,16 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
         }
 
         .modal-date-sales {
-            font-size: 16px;
-            font-weight: 700;
-            color: #0f172a;
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-main);
         }
 
         .modal-col-name-sales {
             font-size: 12px;
             font-weight: 600;
-            color: #2563eb;
+            color: var(--accent);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -514,13 +574,13 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
         .modal-value-display-sales {
             width: 100%;
             font-size: 22px;
-            font-weight: 700;
+            font-weight: 600;
             text-align: center;
-            padding: 14px;
-            background-color: #f8fafc;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            color: #0f172a;
+            padding: 16px;
+            background-color: var(--item-hover);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            color: var(--text-main);
             word-break: break-all;
         }
 
@@ -531,34 +591,35 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
 
         .nav-btn-sales {
             flex: 1;
-            background-color: #f1f5f9;
-            color: #0f172a;
-            border: 1px solid #e2e8f0;
-            height: 38px;
-            border-radius: 8px;
+            background-color: var(--item-bg);
+            color: var(--text-main);
+            border: 1px solid var(--border-strong);
+            height: 40px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 500;
             cursor: pointer;
             transition: all 0.15s ease;
         }
 
         .nav-btn-sales:hover {
-            background-color: #e2e8f0;
+            background-color: var(--item-hover);
+            border-color: var(--accent);
         }
 
         .toast-copy {
             position: fixed;
-            bottom: 20px;
+            bottom: 24px;
             left: 50%;
             transform: translateX(-50%);
-            background: #0f172a;
-            color: #ffffff;
-            padding: 8px 16px;
+            background: var(--text-main);
+            color: var(--bg-color);
+            padding: 10px 20px;
             border-radius: 20px;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 500;
             z-index: 10000;
             opacity: 0;
@@ -578,7 +639,9 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
         <?php if ($db_error): ?>
             <p class="error"><?= htmlspecialchars($db_error) ?></p>
         <?php else: ?>
-            <div class="sales-title-header">SALES BULAN <?= strtoupper($bulan_names[$selected_bulan]) . " " . $selected_tahun ?></div>
+            <div class="sales-header-container">
+                <div class="sales-title-header">SALES BULAN <?= strtoupper($bulan_names[$selected_bulan]) . " " . $selected_tahun ?></div>
+            </div>
 
             <form method="POST" action="">
                 <input type="hidden" name="action" value="save_sales">
@@ -632,7 +695,7 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
                     <button type="submit" class="btn-submit">Simpan Data</button>
                 </div>
 
-                <div class="table-container-sales">
+                <div class="table-container-sales" id="tableContainerSales">
                     <table class="main-table-sales" id="dataTableSales" data-bulan="<?= htmlspecialchars($bulan_names[$selected_bulan]) ?>" data-tahun="<?= $selected_tahun ?>">
                         <thead>
                             <tr>
@@ -662,6 +725,7 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
                             $akm_struk = 0;
 
                             for ($tgl = 1; $tgl <= $num_days; $tgl++): 
+                                $is_today = ($tgl === $current_day && $selected_bulan === $current_month && $selected_tahun === $current_year);
                                 $has_data = isset($current_daily[$tgl]);
                                 $sales_harian = $has_data ? floatval($current_daily[$tgl]['sales_harian']) : 0;
                                 $struk = $has_data ? floatval($current_daily[$tgl]['struk']) : 0;
@@ -687,7 +751,7 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
                                     $growth_apc = ($prev_apc2 > 0) ? (($apc2 - $prev_apc2) / $prev_apc2 * 100) : 0;
                                 }
                             ?>
-                            <tr data-tgl="<?= $tgl ?>">
+                            <tr data-tgl="<?= $tgl ?>" <?= $is_today ? 'id="rowHariH" class="row-hari-h"' : '' ?>>
                                 <td class="tgl-col" onclick="copySalesRowData(<?= $tgl ?>)"><?= $tgl ?></td>
                                 <td>
                                     <input type="text" class="input-table-sales number-only-sales" name="daily[<?= $tgl ?>][sales]" value="<?= $has_data ? number_format($sales_harian, 0, ',', '.') : '' ?>">
@@ -744,6 +808,14 @@ $num_days = (int) date('t', mktime(0, 0, 0, $selected_bulan, 1, $selected_tahun)
     <div class="toast-copy" id="toastCopy">Teks laporan berhasil disalin!</div>
 
     <script>
+        window.addEventListener('DOMContentLoaded', function() {
+            const rowHariH = document.getElementById('rowHariH');
+            const tableContainer = document.getElementById('tableContainerSales');
+            if (rowHariH && tableContainer) {
+                rowHariH.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        });
+
         document.querySelectorAll('.number-only-sales').forEach(function(input) {
             input.addEventListener('input', function() {
                 let value = this.value.replace(/\D/g, '');

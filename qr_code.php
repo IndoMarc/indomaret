@@ -5,14 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="referrer" content="no-referrer">
     <title>Buat QRCode</title>
-    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
     <style>
+        :root {
+            --bg: #faf9f5;
+            --surface: #ffffff;
+            --surface-soft: #f5f4ed;
+            --border: #e8e6dc;
+            --border-strong: #d6d3c4;
+            --text: #141413;
+            --text-muted: #73726c;
+            --accent: #c6613f;
+            --accent-hover: #b5553a;
+            --accent-soft: rgba(198, 97, 63, 0.14);
+            --shadow: 0 4px 24px rgba(20, 20, 19, 0.04), 0 0 0 0.5px rgba(20, 20, 19, 0.04);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #262624;
+                --surface: #30302e;
+                --surface-soft: #3a3a37;
+                --border: #413f3b;
+                --border-strong: #55524c;
+                --text: #faf9f5;
+                --text-muted: #a8a69d;
+                --accent: #d97757;
+                --accent-hover: #e38a6c;
+                --accent-soft: rgba(217, 119, 87, 0.25);
+                --shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+            }
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
@@ -21,20 +49,12 @@
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f4f6f9;
-            padding: 20px 15px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 40px 16px 32px;
             min-height: 100vh;
-            color: #334155;
             -webkit-font-smoothing: antialiased;
-        }
-
-        .page-title {
-            text-align: center;
-            font-size: 22px;
-            font-weight: 700;
-            color: #1e293b;
-            margin-bottom: 20px;
         }
 
         .container {
@@ -42,99 +62,128 @@
             margin: 0 auto;
         }
 
+        .page-title {
+            text-align: center;
+            font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+            font-size: 32px;
+            font-weight: 400;
+            letter-spacing: -0.01em;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .page-subtitle {
+            text-align: center;
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 28px;
+        }
+
+        /* Kotak input seperti chat box Claude */
         .search-container {
-            margin-bottom: 20px;
-            background-color: #fff;
-            padding: 16px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            border: 1px solid #e2e8f0;
+            background-color: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            box-shadow: var(--shadow);
+            padding: 14px 14px 12px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
             width: 100%;
+            margin-bottom: 20px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .search-container:focus-within {
+            border-color: var(--border-strong);
+            box-shadow: 0 6px 28px rgba(20, 20, 19, 0.07), 0 0 0 0.5px rgba(20, 20, 19, 0.06);
         }
 
         .search-textarea {
             width: 100%;
-            height: 90px;
-            padding: 10px 14px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
+            height: 96px;
+            padding: 6px 8px;
+            border: none;
+            background: transparent;
+            color: var(--text);
             font-size: 15px;
+            line-height: 1.55;
             font-family: 'Inter', sans-serif;
-            box-sizing: border-box;
             outline: none;
-            resize: vertical;
-            transition: border-color 0.2s;
+            resize: none;
         }
 
-        .search-textarea:focus {
-            border-color: #0284c7;
-            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        .search-textarea::placeholder {
+            color: var(--text-muted);
         }
 
         .btn-action-group {
             display: flex;
+            justify-content: flex-end;
+            align-items: center;
             gap: 8px;
             width: 100%;
         }
 
-        .btn-submit {
-            flex: 1;
-            background-color: #0284c7;
-            color: #ffffff;
-            border: none;
-            border-radius: 6px;
-            padding: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .btn-submit:hover {
-            background-color: #0369a1;
-        }
-
         .btn-reset {
-            background-color: #f1f5f9;
-            color: #475569;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            padding: 10px 16px;
+            background-color: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border-strong);
+            border-radius: 10px;
+            padding: 9px 16px;
             font-size: 14px;
-            font-weight: 600;
-            text-decoration: none;
-            text-align: center;
+            font-weight: 500;
+            font-family: inherit;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: background-color 0.15s, color 0.15s;
         }
 
         .btn-reset:hover {
-            background-color: #e2e8f0;
-            color: #1e293b;
+            background-color: var(--surface-soft);
+            color: var(--text);
         }
 
+        .btn-submit {
+            background-color: var(--accent);
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 9px 20px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background-color 0.15s, transform 0.05s;
+        }
+
+        .btn-submit:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .btn-submit:active {
+            transform: scale(0.98);
+        }
+
+        /* Hasil */
         .qrcode-display-wrapper {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
+            gap: 16px;
             width: 100%;
         }
 
         .qrcode-result-card {
-            background-color: #fff;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            padding: 20px;
+            background-color: var(--surface);
+            border-radius: 22px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            padding: 28px 20px 24px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 16px;
             width: 100%;
         }
 
@@ -142,10 +191,10 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 10px;
-            background: #fff;
-            border: 1px solid #f1f5f9;
-            border-radius: 8px;
+            padding: 14px;
+            background: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: 16px;
         }
 
         #qrcode_box img {
@@ -153,13 +202,15 @@
         }
 
         .qrcode-label-text {
-            font-size: 14px;
-            font-weight: 600;
-            color: #0f172a;
+            font-family: 'Source Serif 4', Georgia, serif;
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text);
             word-break: break-all;
             text-align: center;
         }
 
+        /* Pagination */
         .pagination-container {
             display: flex;
             justify-content: center;
@@ -174,34 +225,35 @@
             align-items: center;
             justify-content: center;
             padding: 8px 12px;
-            border: 1px solid #cbd5e1;
-            background-color: #ffffff;
-            color: #334155;
-            border-radius: 6px;
+            border: 1px solid var(--border);
+            background-color: var(--surface);
+            color: var(--text);
+            border-radius: 10px;
             font-size: 13px;
             font-weight: 500;
+            font-family: inherit;
             text-decoration: none;
-            transition: all 0.2s ease;
-            min-width: 36px;
+            transition: all 0.15s ease;
+            min-width: 38px;
+            height: 38px;
             cursor: pointer;
         }
 
         .pagination-btn:hover:not(.disabled):not(.active) {
-            background-color: #f8fafc;
-            border-color: #0284c7;
-            color: #0284c7;
+            background-color: var(--surface-soft);
+            border-color: var(--border-strong);
         }
 
         .pagination-btn.active {
-            background-color: #0284c7;
-            color: #ffffff;
-            border-color: #0284c7;
+            background-color: var(--accent-soft);
+            color: var(--accent);
+            border-color: transparent;
             font-weight: 600;
         }
 
         .pagination-btn.disabled {
-            color: #cbd5e1;
-            border-color: #e2e8f0;
+            color: var(--border-strong);
+            background-color: transparent;
             cursor: not-allowed;
             pointer-events: none;
         }
@@ -211,7 +263,7 @@
             align-items: center;
             justify-content: center;
             padding: 8px 4px;
-            color: #64748b;
+            color: var(--text-muted);
             font-size: 13px;
             font-weight: 600;
         }
@@ -232,18 +284,19 @@
 
     <div class="container">
         <h1 class="page-title">Buat QRCode</h1>
+        <p class="page-subtitle"></p>
 
         <div class="search-container">
-            <textarea 
-                id="qr_text_input" 
-                class="search-textarea" 
+            <textarea
+                id="qr_text_input"
+                class="search-textarea"
                 placeholder="Ketik teks disini ( pisahkan dengan spasi atau enter )..."
                 autocomplete="off"
             ></textarea>
 
             <div class="btn-action-group">
-                <button type="button" class="btn-submit" onclick="generateQRCode()">Generate</button>
                 <button type="button" class="btn-reset" onclick="resetQRCode()">Reset</button>
+                <button type="button" class="btn-submit" onclick="generateQRCode()">Generate</button>
             </div>
         </div>
 
