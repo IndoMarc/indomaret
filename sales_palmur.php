@@ -322,7 +322,7 @@ $initialRowCount = max(10, count($formData));
 
         .modal-textarea {
             width: 100%;
-            height: 180px;
+            height: 250px;
             font-family: 'Inter', monospace;
             background: var(--item-hover);
             color: var(--text-main);
@@ -359,7 +359,7 @@ $initialRowCount = max(10, count($formData));
     <form action="" method="POST" id="mainForm">
         <input type="hidden" name="action" id="form_action" value="save">
 
-        <div class="table-responsive">
+        <div class="table-responsive" id="tableResponsive">
             <table>
                 <thead>
                     <tr>
@@ -557,6 +557,35 @@ window.onload = function() {
     for (let i = 0; i < totalRows; i++) {
         calculateRow(i);
     }
+
+    // Mapping hari sistem ke nama hari di array
+    const dayMap = {
+        'Sunday': 'Minggu',
+        'Monday': 'Senin',
+        'Tuesday': 'Selasa',
+        'Wednesday': 'Rabu',
+        'Thursday': 'Kamis',
+        'Friday': 'Jumat',
+        'Saturday': 'Sabtu'
+    };
+
+    // Ambil nama hari ini dalam bahasa Inggris, lalu konversi ke Indonesia
+    let options = { timeZone: 'Asia/Jakarta', weekday: 'long' };
+    let englishDay = new Intl.DateTimeFormat('en-US', options).format(new Date());
+    let currentDay = dayMap[englishDay] || 'Kamis';
+
+    // Cari elemen header tabel berdasarkan hari ini dan posisikan persis seperti contoh gambar
+    let thElements = document.querySelectorAll('th.bg-day');
+    thElements.forEach(th => {
+        if (th.innerText.includes(currentDay)) {
+            let container = document.getElementById('tableResponsive');
+            if (container) {
+                // Mengatur offset posisi scroll agar kolom Hari H berada tepat di sebelah kanan kolom sticky (Target Qty)
+                let targetLeft = th.offsetLeft - 185;
+                container.scrollTo({ left: targetLeft, behavior: 'smooth' });
+            }
+        }
+    });
 };
 </script>
 

@@ -189,7 +189,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             -webkit-font-smoothing: antialiased;
         }
 
-        header, footer {
+        header {
             height: 50px;
             background-color: var(--card-bg);
             border-bottom: 1px solid var(--border);
@@ -198,25 +198,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             align-items: center;
             padding: 0 16px;
             position: fixed;
+            top: 0;
             left: 0;
             right: 0;
             z-index: 1001;
             box-shadow: var(--shadow);
-        }
-
-        header {
-            top: 0;
-        }
-
-        footer {
-            bottom: 0;
-            justify-content: center;
-            font-size: 12px;
-            height: 35px;
-            border-top: 1px solid var(--border);
-            border-bottom: none;
-            color: var(--text-sub);
-            letter-spacing: 0.5px;
         }
 
         .toggle-btn {
@@ -257,7 +243,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         .wrapper {
             position: fixed;
             top: 50px;
-            bottom: 35px;
+            bottom: 0;
             left: 0;
             right: 0;
             overflow: hidden;
@@ -555,8 +541,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             margin-bottom: 16px;
         }
 
-        .search-box-container {
+        .laporan-header-actions {
+            display: flex;
+            gap: 8px;
             margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+
+        .btn-laporan-action {
+            flex: 1;
+            background-color: var(--card-bg);
+            color: var(--accent);
+            border: 1px solid var(--border-strong);
+            padding: 10px 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.2s;
+            box-shadow: var(--shadow);
+        }
+
+        .btn-laporan-action:hover {
+            background-color: var(--accent-soft);
+            border-color: var(--accent);
+        }
+
+        .search-box-container {
+            margin-top: 12px;
             flex-shrink: 0;
             display: flex;
             gap: 8px;
@@ -585,7 +601,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             pointer-events: none;
         }
 
-        .btn-scan-camera {
+        .btn-scan-camera, .btn-refresh-search {
             background-color: var(--accent);
             color: white;
             border: none;
@@ -599,7 +615,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             flex-shrink: 0;
         }
 
-        .btn-scan-camera:hover {
+        .btn-scan-camera:hover, .btn-refresh-search:hover {
             background-color: var(--accent-hover);
         }
 
@@ -1249,10 +1265,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        footer p {
-            font-size: 12px;
-        }
     </style>
 </head>
 <body>
@@ -1426,15 +1438,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
             <div id="sectionLaporan" class="view-section">
                 <div class="card card-laporan">
-                    <div class="search-box-container">
-                        <div class="search-input-wrapper">
-                            <i data-lucide="search" class="search-icon-inside"></i>
-                            <input type="text" id="searchInput" class="search-input" inputmode="numeric" pattern="[0-9]*" placeholder="Cari Produk...">
-                        </div>
-                        <button type="button" id="btnStartScan" class="btn-scan-camera" title="Scan Barcode Kamera">
-                            <i data-lucide="camera" style="width: 18px; height: 18px;"></i>
+                    <div class="laporan-header-actions">
+                        <button type="button" id="btnRingkasanSelisih" class="btn-laporan-action">
+                            <i data-lucide="bar-chart-2" style="width: 14px; height: 14px;"></i> Ringkasan Selisih
+                        </button>
+                        <button type="button" id="btnItemBelumInput" class="btn-laporan-action">
+                            <i data-lucide="alert-circle" style="width: 14px; height: 14px;"></i> Item Belum Input/ITT
                         </button>
                     </div>
+
                     <div class="table-responsive">
                         <table>
                             <thead>
@@ -1455,6 +1467,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+
+                    <div class="search-box-container">
+                        <button type="button" id="btnRefreshSearch" class="btn-refresh-search" title="Reset & Fokus Pencarian">
+                            <i data-lucide="rotate-ccw" style="width: 18px; height: 18px;"></i>
+                        </button>
+                        <div class="search-input-wrapper">
+                            <i data-lucide="search" class="search-icon-inside"></i>
+                            <input type="text" id="searchInput" class="search-input" inputmode="numeric" pattern="[0-9]*" placeholder="Cari Produk...">
+                        </div>
+                        <button type="button" id="btnStartScan" class="btn-scan-camera" title="Scan Barcode Kamera">
+                            <i data-lucide="camera" style="width: 18px; height: 18px;"></i>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1633,10 +1658,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         <div style="font-size: 14px; font-weight: 500;">Mengunggah data ke database...</div>
     </div>
 
-    <footer>
-        <p>~ M.H.R ~</p>
-    </footer>
-
     <script>
         const toggleBtn = document.getElementById('sidebarToggle');
         const sidebar = document.getElementById('sidebar');
@@ -1698,9 +1719,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         const btnTampilkanFilter = document.getElementById('btnTampilkanFilter');
         const searchInput = document.getElementById('searchInput');
         const btnStartScan = document.getElementById('btnStartScan');
+        const btnRefreshSearch = document.getElementById('btnRefreshSearch');
         const btnSalinHasilAkhir = document.getElementById('btnSalinHasilAkhir');
         const btnUploadDB = document.getElementById('btnUploadDB');
         const btnResetHasilAkhir = document.getElementById('btnResetHasilAkhir');
+
+        const btnRingkasanSelisih = document.getElementById('btnRingkasanSelisih');
+        const btnItemBelumInput = document.getElementById('btnItemBelumInput');
 
         const accessCodeModal = document.getElementById('accessCodeModal');
         const txtAccessCode = document.getElementById('txtAccessCode');
@@ -2168,6 +2193,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             
             setTimeout(() => {
                 activeSection.classList.add('active');
+                if (activeSection === sectionLaporan) {
+                    searchInput.focus();
+                }
             }, 50);
 
             sidebar.classList.remove('open');
@@ -2197,6 +2225,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         menuLaporan.addEventListener('click', function() {
             if (!selectedAccount) return;
             switchMenu(menuLaporan, sectionLaporan);
+            setTimeout(() => { searchInput.focus(); }, 100);
         });
 
         menuHasilAkhir.addEventListener('click', function() {
@@ -2646,6 +2675,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             saveFilterToCache();
             applyFilterAndRender();
             switchMenu(menuLaporan, sectionLaporan);
+            setTimeout(() => { searchInput.focus(); }, 100);
         });
 
         function performSearch(query) {
@@ -2680,6 +2710,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         searchInput.addEventListener('input', function() {
             this.value = this.value.replace(/[^0-9]/g, '');
             performSearch(this.value);
+        });
+
+        // Tombol Refresh di Samping Kiri Kotak Pencarian
+        btnRefreshSearch.addEventListener('click', function() {
+            searchInput.value = '';
+            renderTable(currentFilteredItems);
+            searchInput.focus();
+            showToast('Pencarian direset, menampilkan seluruh daftar item.', 'success');
         });
 
         btnStartScan.addEventListener('click', function() {
@@ -2719,6 +2757,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
 
         btnCloseScanModal.addEventListener('click', stopScanner);
+
+        // Fitur Tombol Ringkasan Selisih (Hanya Menampilkan Nilai Selisih Minus)
+        btnRingkasanSelisih.addEventListener('click', function() {
+            if (currentFilteredItems.length === 0) {
+                showToast('Tidak ada data aktif.', 'error');
+                return;
+            }
+            const filteredSelisihMinus = currentFilteredItems.filter(item => {
+                const stokLpp = (parseInt(item.QTY) || 0) + (parseInt(item.NPB) || 0);
+                let selisih = item.STOK_FISIK === undefined ? -stokLpp : (item.STOK_FISIK - stokLpp);
+                return selisih < 0; // Hanya ambil yang minus (< 0)
+            });
+            renderTable(filteredSelisihMinus);
+            showToast(`Menampilkan ${filteredSelisihMinus.length} item selisih minus.`, 'success');
+        });
+
+        // Fitur Tombol Item Belum Input/ITT (LPPTK selain 0 dan STOK_FISIK masih undefined)
+        btnItemBelumInput.addEventListener('click', function() {
+            if (currentFilteredItems.length === 0) {
+                showToast('Tidak ada data aktif.', 'error');
+                return;
+            }
+            const filteredBelumInput = currentFilteredItems.filter(item => {
+                const stokLpp = (parseInt(item.QTY) || 0) + (parseInt(item.NPB) || 0);
+                return stokLpp !== 0 && item.STOK_FISIK === undefined;
+            });
+            renderTable(filteredBelumInput);
+            showToast(`Menampilkan ${filteredBelumInput.length} item belum diinput.`, 'success');
+        });
 
         function renderTable(items) {
             if (items.length === 0) {
@@ -3109,7 +3176,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 return;
             }
 
-            const itemsSelisih = [];
+            const itemsPlus = [];
+            const itemsMinus = [];
+            let grandTotalHargaSelisih = 0;
+
             for (let i = 0; i < currentFilteredItems.length; i++) {
                 const item = currentFilteredItems[i];
                 const stokLpp = (parseInt(item.QTY) || 0) + (parseInt(item.NPB) || 0);
@@ -3122,16 +3192,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 }
 
                 if (selisih !== 0) {
-                    const selisihStr = selisih > 0 ? `(+${selisih})` : `(${selisih})`;
-                    itemsSelisih.push({
-                        plumd: String(item.PLUMD || '').trim(),
-                        desc: String(item.DESC2 || '').trim(),
-                        selisihStr: selisihStr
-                    });
+                    const harga = parseFloat(item.PRICE || 0);
+                    const totalHarga = harga * selisih;
+                    grandTotalHargaSelisih += totalHarga;
+
+                    const plumd = String(item.PLUMD || '').trim();
+                    const desc = String(item.DESC2 || '').trim();
+                    
+                    const formattedLine = {
+                        plumd: plumd,
+                        desc: desc,
+                        selisihStr: selisih > 0 ? `(+${selisih})` : `(${selisih})`,
+                        leftText: `${plumd} ${desc}`
+                    };
+
+                    if (selisih > 0) {
+                        itemsPlus.push(formattedLine);
+                    } else {
+                        itemsMinus.push(formattedLine);
+                    }
                 }
             }
 
-            if (itemsSelisih.length === 0) {
+            if (itemsPlus.length === 0 && itemsMinus.length === 0) {
                 showToast('Tidak ada data selisih untuk disalin.', 'error');
                 return;
             }
@@ -3139,28 +3222,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             let namaRakFull = selectModis.value || (currentFilteredItems[0] ? currentFilteredItems[0].NAMA_RAK_FULL : '');
             let namaRak6Char = String(namaRakFull || '').substring(0, 6);
 
-            const preparedLines = itemsSelisih.map(item => {
-                const leftText = `${item.plumd} ${item.desc}`;
-                const rightText = item.selisihStr;
-                return { leftText, rightText };
-            });
+            let dariShelf = selectDariShelfing.value ? selectDariShelfing.value : '-';
+            let sampaiShelf = selectSampaiShelfing.value ? selectSampaiShelfing.value : '-';
+            let rangeShelfStr = `${dariShelf} - ${sampaiShelf}`;
 
-            let maxLen = 0;
-            preparedLines.forEach(line => {
-                const len = line.leftText.length + 1 + line.rightText.length;
+            let maxLen = 35;
+            const allItemsForCalc = [...itemsPlus, ...itemsMinus];
+            allItemsForCalc.forEach(item => {
+                const len = item.leftText.length + 1 + item.selisihStr.length;
                 if (len > maxLen) maxLen = len;
             });
 
-            const targetWidth = Math.max(maxLen, 35);
-
             let resultText = "```\n";
-            resultText += `HASIL SO ( ${namaRak6Char} )\n`;
-            resultText += "————————————————————————————\n";
+            resultText += `HASIL SO ( ${namaRak6Char} ) ( ${rangeShelfStr} )\n`;
+            resultText += "------------------------------\n";
 
-            preparedLines.forEach(line => {
-                resultText += justifyLine(line.leftText, line.rightText, targetWidth) + "\n";
-            });
+            if (itemsPlus.length > 0) {
+                resultText += "-- ITEM PLUS --\n";
+                itemsPlus.forEach(line => {
+                    resultText += justifyLine(line.leftText, line.selisihStr, maxLen) + "\n";
+                });
+                resultText += "\n";
+            }
 
+            if (itemsMinus.length > 0) {
+                resultText += "-- ITEM MINUS --\n";
+                itemsMinus.forEach(line => {
+                    resultText += justifyLine(line.leftText, line.selisihStr, maxLen) + "\n";
+                });
+            }
+
+            resultText += "------------------------------\n";
+            let formattedGrandTotal = grandTotalHargaSelisih > 0 ? `+${grandTotalHargaSelisih.toLocaleString('id-ID')}` : grandTotalHargaSelisih.toLocaleString('id-ID');
+            resultText += `TOTAL SELISIH : Rp ${formattedGrandTotal}\n`;
             resultText += "```";
 
             if (navigator.clipboard && navigator.clipboard.writeText) {
