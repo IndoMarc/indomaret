@@ -51,9 +51,10 @@
             background-color: var(--bg-color);
             min-height: 100vh;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
-            padding: 24px 16px;
+            padding: 20px 16px;
             color: var(--text-main);
             -webkit-font-smoothing: antialiased;
         }
@@ -61,6 +62,10 @@
         .container {
             max-width: 460px;
             width: 100%;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            justify-content: center;
             transition: opacity 0.25s ease, transform 0.25s ease;
         }
 
@@ -69,9 +74,9 @@
             transform: translateY(-8px);
         }
 
-        .header,
+        header,
         .menu-item,
-        .footer-text {
+        footer {
             animation: rise 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
         }
 
@@ -83,7 +88,8 @@
         .menu-item:nth-child(6) { animation-delay: 0.38s; }
         .menu-item:nth-child(7) { animation-delay: 0.44s; }
         .menu-item:nth-child(8) { animation-delay: 0.50s; }
-        .footer-text { animation-delay: 0.6s; }
+        .menu-item:nth-child(9) { animation-delay: 0.56s; }
+        footer { animation-delay: 0.62s; }
 
         @keyframes rise {
             from { opacity: 0; transform: translateY(14px); }
@@ -97,21 +103,18 @@
             }
         }
 
-        .header {
+        /* HEADER DENGAN GARIS DI BAWAHNYA */
+        header {
             text-align: center;
-            margin-bottom: 32px;
-        }
-
-        .logo {
-            width: 44px;
-            height: 44px;
-            margin: 0 auto 16px;
-            color: var(--accent);
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+            width: 100%;
         }
 
         h1 {
             font-family: 'Source Serif 4', Georgia, serif;
-            font-size: 28px;
+            font-size: 24px;
             font-weight: 500;
             letter-spacing: -0.4px;
             line-height: 1.25;
@@ -121,7 +124,7 @@
         .menu-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 10px;
+            gap: 8px;
         }
 
         .menu-item {
@@ -134,8 +137,8 @@
             text-decoration: none;
             background: var(--item-bg);
             color: var(--text-main);
-            padding: 16px 16px;
-            border-radius: 14px;
+            padding: 13px 16px;
+            border-radius: 12px;
             font-size: 14px;
             font-weight: 500;
             line-height: 1.4;
@@ -187,12 +190,16 @@
             outline-offset: 2px;
         }
 
-        .footer-text {
+        /* FOOTER DENGAN GARIS DI ATASNYA */
+        footer {
             text-align: center;
             font-size: 12px;
             color: var(--text-sub);
-            margin-top: 32px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
             letter-spacing: 0.5px;
+            width: 100%;
         }
 
         .modal-overlay {
@@ -201,9 +208,11 @@
             inset: 0;
             background: rgba(41, 38, 27, 0.45);
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
+            padding-top: 15vh;
             z-index: 1000;
-            padding: 16px;
+            padding-left: 16px;
+            padding-right: 16px;
         }
 
         .modal-overlay.active {
@@ -231,10 +240,35 @@
         }
 
         .modal-box p {
-            margin: 0 0 24px 0;
+            margin: 0 0 16px 0;
             color: var(--text-sub);
             font-size: 14px;
             line-height: 1.6;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid var(--border-strong);
+            background: var(--item-bg);
+            color: var(--text-main);
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 16px;
+            font-family: inherit;
+        }
+
+        .modal-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .error-msg {
+            color: #d9534f;
+            font-size: 12px;
+            margin-top: -10px;
+            margin-bottom: 12px;
+            display: none;
         }
 
         .modal-actions {
@@ -287,12 +321,9 @@
 <body>
 
     <div class="container">
-        <div class="header">
-            <svg class="logo" viewBox="0 0 48 48" fill="currentColor" aria-hidden="true">
-                <path d="M24 2l3.2 14.2L38 6.6l-7.2 12.2L45 15l-11.6 9L45 33l-14.2-3.8L38 41.4l-10.8-9.6L24 46l-3.2-14.2L10 41.4l7.2-12.2L3 33l11.6-9L3 15l14.2 3.8L10 6.6l10.8 9.6z"/>
-            </svg>
+        <header>
             <h1>F8YF - GRAND MUTIARA</h1>
-        </div>
+        </header>
 
         <div class="menu-grid">
             <a href="cek_harga.php" class="menu-item"><svg class="arrow arrow-left" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg><span>Cek Harga Produk</span><svg class="arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg></a>
@@ -303,13 +334,15 @@
             <a href="sales_palmur.php" class="menu-item"><svg class="arrow arrow-left" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg><span>Laporan Paling Murah</span><svg class="arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg></a>
             <a href="pos_manual.php" class="menu-item"><svg class="arrow arrow-left" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg><span>POS Kasir Manualan</span><svg class="arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg></a>
             <a href="http://192.168.137.1:3000/index2.html" class="menu-item" id="btnRekapKas"><svg class="arrow arrow-left" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg><span>Rekap Kas Induk &amp; Anak</span><svg class="arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg></a>
-        </div>
-
-        <div class="footer-text">
-           ~ M.H.R ~
+            <a href="database.php" class="menu-item" id="btnKelolaDb"><svg class="arrow arrow-left" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg><span>Pengaturan Database</span><svg class="arrow" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg></a>
         </div>
     </div>
 
+    <footer>
+       ~ M.H.R ~
+    </footer>
+
+    <!-- Modal Pemberitahuan (Rekap Kas) -->
     <div class="modal-overlay" id="modalNotice">
         <div class="modal-box">
             <h3>Pemberitahuan</h3>
@@ -321,14 +354,36 @@
         </div>
     </div>
 
+    <!-- Modal Kode Akses (Pengaturan Database MySQL) -->
+    <div class="modal-overlay" id="modalAuth">
+        <div class="modal-box">
+            <h3>Kode Akses</h3>
+            <p>Silakan masukkan kode akses untuk masuk ke menu Pengaturan Database MySQL.</p>
+            <input type="password" id="accessCode" class="modal-input" placeholder="Masukkan kode akses...">
+            <div class="error-msg" id="errorMsg">Kode akses salah!</div>
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-secondary" id="btnCancelAuth">Batal</button>
+                <button class="modal-btn modal-btn-primary" id="btnSubmitAuth">Masuk</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const btnRekapKas = document.getElementById('btnRekapKas');
         const modalNotice = document.getElementById('modalNotice');
         const btnConfirm = document.getElementById('btnConfirm');
         const btnCancel = document.getElementById('btnCancel');
 
+        const btnKelolaDb = document.getElementById('btnKelolaDb');
+        const modalAuth = document.getElementById('modalAuth');
+        const accessCodeInput = document.getElementById('accessCode');
+        const errorMsg = document.getElementById('errorMsg');
+        const btnSubmitAuth = document.getElementById('btnSubmitAuth');
+        const btnCancelAuth = document.getElementById('btnCancelAuth');
+
         let targetUrl = '';
 
+        // Modal Rekap Kas
         btnRekapKas.addEventListener('click', function(e) {
             e.preventDefault();
             targetUrl = this.getAttribute('href');
@@ -343,13 +398,6 @@
             if (e.target === modalNotice) modalNotice.classList.remove('active');
         });
 
-        function navigateWithTransition(url) {
-            document.body.classList.add('leaving');
-            setTimeout(function() {
-                window.location.href = url;
-            }, 250);
-        }
-
         btnConfirm.addEventListener('click', function() {
             modalNotice.classList.remove('active');
             if (targetUrl && targetUrl !== '#') {
@@ -357,7 +405,54 @@
             }
         });
 
-        document.querySelectorAll('.menu-item:not(#btnRekapKas)').forEach(function(link) {
+        // Modal Pengaturan Database MySQL
+        btnKelolaDb.addEventListener('click', function(e) {
+            e.preventDefault();
+            targetUrl = this.getAttribute('href');
+            accessCodeInput.value = '';
+            errorMsg.style.display = 'none';
+            modalAuth.classList.add('active');
+            accessCodeInput.focus();
+        });
+
+        btnCancelAuth.addEventListener('click', function() {
+            modalAuth.classList.remove('active');
+        });
+
+        modalAuth.addEventListener('click', function(e) {
+            if (e.target === modalAuth) modalAuth.classList.remove('active');
+        });
+
+        function verifyCode() {
+            const enteredCode = accessCodeInput.value;
+            if (enteredCode === '$$&&@@') {
+                modalAuth.classList.remove('active');
+                navigateWithTransition(targetUrl);
+            } else {
+                errorMsg.style.display = 'block';
+                accessCodeInput.focus();
+                accessCodeInput.select();
+            }
+        }
+
+        btnSubmitAuth.addEventListener('click', verifyCode);
+
+        accessCodeInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                verifyCode();
+            }
+        });
+
+        function navigateWithTransition(url) {
+            document.body.classList.Async = true;
+            document.body.classList.add('leaving');
+            setTimeout(function() {
+                window.location.href = url;
+            }, 250);
+        }
+
+        // Menu lain selain Rekap Kas & Pengaturan Database
+        document.querySelectorAll('.menu-item:not(#btnRekapKas):not(#btnKelolaDb)').forEach(function(link) {
             link.addEventListener('click', function(e) {
                 e.preventDefault();
                 navigateWithTransition(this.getAttribute('href'));
