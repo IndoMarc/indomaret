@@ -262,6 +262,40 @@ while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
             letter-spacing: 0.8px;
             color: var(--text-sub);
             font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        /* Table List Menu Styling */
+        .table-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .table-list li a {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 13px;
+            border-radius: 8px;
+            transition: background 0.15s ease, color 0.15s ease;
+            word-break: break-all;
+        }
+
+        .table-list li a:hover {
+            background: var(--item-hover);
+            color: var(--accent);
+        }
+
+        .table-list li a.active {
+            background: var(--accent-soft);
+            color: var(--accent);
+            font-weight: 500;
         }
 
         /* Main Content Styling */
@@ -486,6 +520,36 @@ while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
             .nav-tabs { flex-wrap: wrap; }
         }
     </style>
+    <script>
+        // Validasi Kode Akses Saat Halaman Dimuat
+        window.addEventListener('DOMContentLoaded', () => {
+            const kodeAksesBenar = '$$&&@@';
+            let aksesDiberikan = false;
+            
+            // Anda bisa menggunakan sessionStorage agar tidak terus-menerus muncul dalam satu sesi browser
+            if (sessionStorage.getItem('authorized') === 'true') {
+                return;
+            }
+
+            while (!aksesDiberikan) {
+                let inputKode = prompt("Masukkan kode akses:");
+                
+                // Jika pengguna menekan Cancel
+                if (inputKode === null) {
+                    alert("Akses dibatalkan. Halaman tidak dapat dimuat.");
+                    document.body.innerHTML = "<div style='padding: 40px; font-family: sans-serif; text-align: center;'><h2>Akses Ditolak</h2><p>Silakan muat ulang halaman untuk mencoba kembali.</p></div>";
+                    throw new Error("Akses dibatalkan");
+                }
+                
+                if (inputKode === kodeAksesBenar) {
+                    sessionStorage.setItem('authorized', 'true');
+                    aksesDiberikan = true;
+                } else {
+                    alert("Kode akses salah! Silakan coba lagi.");
+                }
+            }
+        });
+    </script>
 </head>
 <body>
 
@@ -497,16 +561,18 @@ while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
             <h2><?= htmlspecialchars($dbname) ?></h2>
         </div>
         <div class="sidebar-menu">
-            <div class="form-group" style="margin-bottom: 0;">
-                <label class="menu-category" for="tableDropdown">Pilih Tabel</label>
-                <select id="tableDropdown" class="form-control" onchange="if(this.value) window.location.href=this.value;">
-                    <option value="">-- Pilih Tabel --</option>
+            <div>
+                <span class="menu-category">Daftar Tabel</span>
+                <ul class="table-list">
                     <?php foreach ($tables as $t): ?>
-                        <option value="?action=browse&table=<?= $t ?>" <?= ($table === $t) ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($t) ?>
-                        </option>
+                        <li>
+                            <a href="?action=browse&table=<?= $t ?>" class="<?= ($table === $t) ? 'active' : '' ?>">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                <?= htmlspecialchars($t) ?>
+                            </a>
+                        </li>
                     <?php endforeach; ?>
-                </select>
+                </ul>
             </div>
         </div>
     </div>
@@ -581,7 +647,7 @@ while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
                         Tambah
                     </a>
                     <a href="?action=structure&table=<?= $table ?>">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c0 .69.41 1.31 1.03 1.51h.09a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09c-.62 0-1.23.42-1.51 1.03z"></path></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9c0 .69.41 1.31 1.03 1.51h.09a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09c-.62 0-1.23.42-1.51 1.03z"></path></svg>
                         Struktur
                     </a>
                     <a href="?action=truncate&table=<?= $table ?>" onclick="return confirm('PERINGATAN: Seluruh isi data pada tabel ini akan dihapus permanen! Lanjutkan?')" style="color: #e74c3c;">
@@ -676,7 +742,7 @@ while ($row = $stmt->fetch(PDO::FETCH_NUM)) {
                         Tambah
                     </a>
                     <a href="?action=structure&table=<?= $table ?>">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c0 .69.41 1.31 1.03 1.51h.09a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09c-.62 0-1.23.42-1.51 1.03z"></path></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9c0 .69.41 1.31 1.03 1.51h.09a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09c-.62 0-1.23.42-1.51 1.03z"></path></svg>
                         Struktur
                     </a>
                 </div>

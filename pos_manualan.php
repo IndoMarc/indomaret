@@ -107,7 +107,8 @@ if ($isAjax && $action) {
         $foundProduct = null;
         if (is_array($allData)) {
             foreach ($allData as $row) {
-                if (($row['plu'] ?? '') === $pluTarget) {
+                // Cek pencocokan dari PLU atau Barcode
+                if (($row['plu'] ?? '') === $pluTarget || ($row['barcode'] ?? '') === $pluTarget) {
                     $foundProduct = $row;
                     break;
                 }
@@ -118,12 +119,13 @@ if ($isAjax && $action) {
             $hNorm = $foundProduct['harga_normal'] ?? 0;
             $hPromo = $foundProduct['harga_promo'] ?? 0;
             $price = ($hPromo > 0 && $hPromo != $hNorm) ? $hPromo : $hNorm;
+            $targetPluKey = $foundProduct['plu'];
 
             if ($action === 'add') {
-                if (isset($_SESSION['cart'][$pluTarget])) {
-                    $_SESSION['cart'][$pluTarget]['qty']++;
+                if (isset($_SESSION['cart'][$targetPluKey])) {
+                    $_SESSION['cart'][$targetPluKey]['qty']++;
                 } else {
-                    $_SESSION['cart'][$pluTarget] = [
+                    $_SESSION['cart'][$targetPluKey] = [
                         'plu' => $foundProduct['plu'],
                         'deskripsi' => $foundProduct['deskripsi'],
                         'price' => $price,
@@ -131,10 +133,10 @@ if ($isAjax && $action) {
                     ];
                 }
             } elseif ($action === 'minus') {
-                if (isset($_SESSION['cart'][$pluTarget])) {
-                    $_SESSION['cart'][$pluTarget]['qty']--;
-                    if ($_SESSION['cart'][$pluTarget]['qty'] <= 0) {
-                        unset($_SESSION['cart'][$pluTarget]);
+                if (isset($_SESSION['cart'][$targetPluKey])) {
+                    $_SESSION['cart'][$targetPluKey]['qty']--;
+                    if ($_SESSION['cart'][$targetPluKey]['qty'] <= 0) {
+                        unset($_SESSION['cart'][$targetPluKey]);
                     }
                 }
             } elseif ($action === 'remove') {
@@ -248,7 +250,7 @@ $isSuccessPage = isset($_GET['success']) && $_GET['success'] == '1';
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>POS Kasir Sederhana</title>
+<title>POS Kasir Manualan</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap" rel="stylesheet">
@@ -300,14 +302,13 @@ body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background: var(--bg-color); 
     color: var(--text-main); 
-    font-size: 14px; 
+    font-size: 13px; 
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 16px;
+    padding: 8px;
     -webkit-font-smoothing: antialiased;
-    transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
 body.leaving {
@@ -324,131 +325,169 @@ header, .pos-container, footer {
     animation: rise 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
 }
 
-/* Halaman Login */
+/* Halaman Login / Pilih Akun */
 .login-wrap { display: flex; align-items: center; justify-content: center; min-height: 80vh; width: 100%; }
-.login-card { background: var(--card-bg); padding: 28px 24px 24px; border-radius: 20px; border: 1px solid var(--border); box-shadow: var(--shadow); width: 100%; max-width: 380px; text-align: center; }
+.login-card { background: var(--card-bg); padding: 28px 20px 24px; border-radius: 20px; border: 1px solid var(--border); box-shadow: var(--shadow); width: 100%; max-width: 380px; text-align: center; }
 .login-card h2 { font-family: 'Source Serif 4', Georgia, serif; margin-top: 0; margin-bottom: 16px; color: var(--text-main); font-size: 20px; font-weight: 500; }
-.login-card select { width: 100%; padding: 11px 14px; border: 1px solid var(--border-strong); background: var(--item-bg); color: var(--text-main); border-radius: 10px; margin-bottom: 16px; font-size: 14px; font-family: inherit; }
-.login-card select:focus { outline: none; border-color: var(--accent); }
 
-/* Layout POS Utama */
-.pos-container { display: flex; flex-direction: column; height: calc(100vh - 32px); max-height: 800px; width: 100%; max-width: 460px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow); overflow: hidden; }
+/* Grid Tombol Menu Akun */
+.account-menu-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 6px; }
+.account-btn { width: 100%; padding: 13px 16px; background: var(--item-bg); color: var(--text-main); border: 1px solid var(--border-strong); border-radius: 12px; font-size: 14px; font-weight: 500; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all 0.2s ease; box-shadow: var(--shadow); }
+.account-btn:hover { background: var(--item-hover); border-color: var(--accent); color: var(--accent); }
+.account-btn svg { color: var(--text-sub); transition: transform 0.2s ease; }
+.account-btn:hover svg { color: var(--accent); transform: translateX(3px); }
+
+/* Layout POS Utama (Dioptimalkan Agar Pas di Layar HP) */
+.pos-container { display: flex; flex-direction: column; height: calc(100vh - 16px); max-height: 720px; width: 100%; max-width: 440px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; }
 
 /* Header */
-.pos-header { background: var(--card-bg); color: var(--text-main); padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; border-bottom: 1px solid var(--border); }
-.pos-header h3 { font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 18px; font-weight: 500; }
-.logout-btn { color: var(--text-sub); background: var(--item-bg); border: 1px solid var(--border); padding: 8px; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
+.pos-header { background: var(--card-bg); color: var(--text-main); padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; border-bottom: 1px solid var(--border); }
+.pos-header h3 { font-family: 'Source Serif 4', Georgia, serif; margin: 0; font-size: 16px; font-weight: 500; }
+.logout-btn { color: var(--text-sub); background: var(--item-bg); border: 1px solid var(--border); padding: 6px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
 .logout-btn:hover { background: var(--item-hover); color: var(--accent); border-color: var(--border-strong); }
 
 /* Keranjang Belanja */
 .pos-cart { background: var(--card-bg); display: flex; flex-direction: column; flex: 1; overflow: hidden; }
-.cart-header { padding: 14px 20px; font-weight: 500; font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); }
-.cart-actions-top { display: flex; align-items: center; gap: 8px; }
-.icon-btn { background: var(--item-bg); border: 1px solid var(--border); border-radius: 10px; padding: 7px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-family: inherit; font-weight: 500; color: var(--text-main); text-decoration: none; transition: all 0.2s ease; }
+.cart-header { padding: 10px 14px; font-weight: 500; font-family: 'Source Serif 4', Georgia, serif; font-size: 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); }
+.cart-actions-top { display: flex; align-items: center; gap: 6px; }
+.icon-btn { background: var(--item-bg); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-family: inherit; font-weight: 500; color: var(--text-main); text-decoration: none; transition: all 0.2s ease; }
 .icon-btn:hover { background: var(--item-hover); border-color: var(--border-strong); }
 .icon-btn.danger { color: var(--danger); border-color: var(--border); background: var(--danger-bg); }
 .icon-btn.danger:hover { opacity: 0.85; }
 
-.cart-items { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: var(--bg-color); }
-.cart-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 10px; box-shadow: var(--shadow); }
-.cart-remove-btn { color: var(--danger); background: var(--danger-bg); border: 1px solid var(--border); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; font-weight: bold; flex-shrink: 0; transition: transform 0.15s ease; }
+.cart-items { flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; background: var(--bg-color); }
+.cart-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; gap: 8px; box-shadow: var(--shadow); }
+.cart-remove-btn { color: var(--danger); background: var(--danger-bg); border: 1px solid var(--border); border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 13px; font-weight: bold; flex-shrink: 0; transition: transform 0.15s ease; }
 .cart-remove-btn:hover { transform: scale(1.05); }
 .cart-item-info { flex: 1; min-width: 0; }
-.cart-item-plu { font-size: 11px; color: var(--text-sub); font-family: monospace; font-weight: 600; }
-.cart-item-title { font-size: 13px; font-weight: 500; color: var(--text-main); margin: 2px 0 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cart-item-sub { font-size: 12px; color: var(--text-sub); }
-.cart-controls { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
-.cart-controls button { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--border); background: var(--item-bg); color: var(--text-main); cursor: pointer; font-weight: bold; transition: background 0.2s; }
+.cart-item-plu { font-size: 10px; color: var(--text-sub); font-family: monospace; font-weight: 600; }
+.cart-item-title { font-size: 12px; font-weight: 500; color: var(--text-main); margin: 2px 0 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cart-item-sub { font-size: 11px; color: var(--text-sub); }
+.cart-controls { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.cart-controls button { width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border); background: var(--item-bg); color: var(--text-main); cursor: pointer; font-weight: bold; transition: background 0.2s; }
 .cart-controls button:hover { background: var(--item-hover); border-color: var(--border-strong); }
 
 /* Ringkasan & Pembayaran */
-.cart-footer { padding: 16px 20px; background: var(--card-bg); border-top: 1px solid var(--border); flex-shrink: 0; }
-.summary-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: var(--text-sub); }
-.summary-row.total { font-size: 16px; font-weight: 600; color: var(--text-main); margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); }
-.btn-checkout { width: 100%; background: var(--accent); color: #fff; border: none; padding: 13px 20px; border-radius: 12px; font-size: 14px; font-weight: 500; font-family: inherit; cursor: pointer; margin-top: 10px; text-align: center; text-decoration: none; display: block; transition: background 0.2s ease, transform 0.15s ease; box-shadow: var(--shadow); }
+.cart-footer { padding: 12px 14px; background: var(--card-bg); border-top: 1px solid var(--border); flex-shrink: 0; }
+
+/* Kotak Input PLU/Barcode Langsung di Footer */
+.direct-scan-wrap { margin-bottom: 10px; }
+.direct-scan-input { width: 100%; padding: 10px 12px; font-size: 13px; border: 1px solid var(--accent); background: var(--item-bg); color: var(--text-main); border-radius: 10px; font-family: inherit; outline: none; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
+.direct-scan-input::placeholder { color: var(--text-sub); }
+
+.summary-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; color: var(--text-sub); }
+.summary-row.total { font-size: 15px; font-weight: 600; color: var(--text-main); margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border); }
+.btn-checkout { width: 100%; background: var(--accent); color: #fff; border: none; padding: 11px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; font-family: inherit; cursor: pointer; margin-top: 8px; text-align: center; text-decoration: none; display: block; transition: background 0.2s ease, transform 0.15s ease; box-shadow: var(--shadow); }
 .btn-checkout:hover { background: var(--accent-hover); }
 .btn-checkout:active { transform: scale(0.99); }
 
 /* Pop-up Melayang Pencarian (Scroll Load) */
 .popup-overlay { position: fixed; inset: 0; background: rgba(41, 38, 27, 0.45); display: flex; flex-direction: column; justify-content: flex-end; z-index: 200; display: none; padding: 0; }
 @media(min-width: 768px) { .popup-overlay { align-items: center; justify-content: center; padding: 20px; } }
-.popup-content { background: var(--card-bg); width: 100%; max-width: 480px; height: 85vh; border-top-left-radius: 20px; border-top-right-radius: 20px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); }
-@media(min-width: 768px) { .popup-content { border-radius: 20px; height: 80vh; } }
+.popup-content { background: var(--card-bg); width: 100%; max-width: 440px; height: 80vh; border-top-left-radius: 16px; border-top-right-radius: 16px; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); }
+@media(min-width: 768px) { .popup-content { border-radius: 16px; } }
 
-.popup-header-bar { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; background: var(--card-bg); }
-.search-input-wrap { flex: 1; display: flex; align-items: center; border: 1px solid var(--border-strong); border-radius: 10px; padding: 0 12px; background: var(--item-bg); }
-.search-input-wrap input { flex: 1; border: none; outline: none; padding: 10px 0; font-size: 14px; background: transparent; color: var(--text-main); font-family: inherit; }
+.popup-header-bar { padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; background: var(--card-bg); }
+.search-input-wrap { flex: 1; display: flex; align-items: center; border: 1px solid var(--border-strong); border-radius: 8px; padding: 0 10px; background: var(--item-bg); }
+.search-input-wrap input { flex: 1; border: none; outline: none; padding: 8px 0; font-size: 13px; background: transparent; color: var(--text-main); font-family: inherit; }
 .scan-btn { background: none; border: none; cursor: pointer; color: var(--text-sub); padding: 4px; display: flex; align-items: center; transition: color 0.2s; }
 .scan-btn:hover { color: var(--accent); }
 
-#scanner-container { width: 100%; max-height: 220px; display: none; background: #000; }
-.popup-body-list { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: var(--bg-color); }
-.prod-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); }
-.prod-title { font-weight: 500; font-size: 13px; color: var(--text-main); margin: 2px 0; }
-.prod-meta { font-size: 11px; color: var(--text-sub); font-family: monospace; font-weight: 600; }
-.prod-price { font-weight: 600; color: var(--success); margin-top: 4px; font-size: 13px; }
-.btn-add-item { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 8px 12px; cursor: pointer; font-size: 12px; font-weight: 500; font-family: inherit; transition: background 0.2s; }
+#scanner-container { width: 100%; max-height: 200px; display: none; background: #000; }
+.popup-body-list { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; background: var(--bg-color); }
+.prod-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--shadow); }
+.prod-title { font-weight: 500; font-size: 12px; color: var(--text-main); margin: 2px 0; }
+.prod-meta { font-size: 10px; color: var(--text-sub); font-family: monospace; font-weight: 600; }
+.prod-price { font-weight: 600; color: var(--success); margin-top: 3px; font-size: 12px; }
+.btn-add-item { background: var(--accent); color: #fff; border: none; border-radius: 6px; padding: 6px 10px; cursor: pointer; font-size: 11px; font-weight: 500; font-family: inherit; transition: background 0.2s; }
 .btn-add-item:hover { background: var(--accent-hover); }
-.loading-more { text-align: center; padding: 12px; color: var(--text-sub); font-size: 12px; }
+.loading-more { text-align: center; padding: 10px; color: var(--text-sub); font-size: 11px; }
 
 /* Halaman Checkout & Success */
-.checkout-page { padding: 20px; background: var(--card-bg); flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
-.cash-input { width: 100%; padding: 12px 16px; font-size: 22px; font-weight: 600; text-align: right; border: 1px solid var(--border-strong); background: var(--item-bg); color: var(--text-main); border-radius: 12px; margin: 10px 0 14px; font-family: inherit; }
+.checkout-page { padding: 16px; background: var(--card-bg); flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+.cash-input { width: 100%; padding: 12px 14px; font-size: 20px; font-weight: 600; text-align: right; border: 1px solid var(--border-strong); background: var(--item-bg); color: var(--text-main); border-radius: 10px; margin: 8px 0 12px; font-family: inherit; }
 .cash-input:focus { outline: none; border-color: var(--accent); }
-.quick-cash { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
-.quick-cash button { padding: 10px; font-size: 13px; background: var(--item-bg); color: var(--text-main); border: 1px solid var(--border); border-radius: 10px; cursor: pointer; font-weight: 500; font-family: inherit; transition: all 0.2s; }
+.quick-cash { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
+.quick-cash button { padding: 8px; font-size: 12px; background: var(--item-bg); color: var(--text-main); border: 1px solid var(--border); border-radius: 8px; cursor: pointer; font-weight: 500; font-family: inherit; transition: all 0.2s; }
 .quick-cash button:hover { background: var(--item-hover); border-color: var(--border-strong); }
-.change-box { background: var(--success-bg); border: 1px solid var(--border); padding: 16px; border-radius: 12px; margin-bottom: 16px; text-align: center; color: var(--success); }
+.change-box { background: var(--success-bg); border: 1px solid var(--border); padding: 12px; border-radius: 10px; margin-bottom: 12px; text-align: center; color: var(--success); }
 .change-box.short { background: var(--danger-bg); border-color: var(--border); color: var(--danger); }
 
 /* Modal Saved List */
-.modal-overlay { position: fixed; inset: 0; background: rgba(41, 38, 27, 0.45); display: flex; align-items: center; justify-content: center; z-index: 300; padding: 16px; display: none; }
-.modal-box { background: var(--card-bg); border: 1px solid var(--border); padding: 24px; border-radius: 20px; width: 100%; max-width: 380px; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); }
-.modal-box h3 { font-family: 'Source Serif 4', Georgia, serif; font-size: 18px; margin-bottom: 8px; font-weight: 500; color: var(--text-main); }
-.receipt-box { background: var(--item-bg); border: 1px dashed var(--border-strong); color: var(--text-main); padding: 14px; text-align: left; font-family: monospace; font-size: 12px; margin: 12px 0; max-height: 180px; overflow-y: auto; border-radius: 10px; }
-.empty-cart { text-align: center; color: var(--text-sub); padding: 40px 10px; font-size: 13px; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(41, 38, 27, 0.45); display: flex; align-items: center; justify-content: center; z-index: 300; padding: 12px; display: none; }
+.modal-box { background: var(--card-bg); border: 1px solid var(--border); padding: 20px; border-radius: 16px; width: 100%; max-width: 360px; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15); }
+.modal-box h3 { font-family: 'Source Serif 4', Georgia, serif; font-size: 16px; margin-bottom: 6px; font-weight: 500; color: var(--text-main); }
+.receipt-box { background: var(--item-bg); border: 1px dashed var(--border-strong); color: var(--text-main); padding: 12px; text-align: left; font-family: monospace; font-size: 11px; margin: 10px 0; max-height: 180px; overflow-y: auto; border-radius: 8px; }
+.empty-cart { text-align: center; color: var(--text-sub); padding: 30px 10px; font-size: 12px; }
 
-footer { text-align: center; font-size: 12px; color: var(--text-sub); margin-top: 16px; letter-spacing: 0.5px; width: 100%; flex-shrink: 0; }
+footer { text-align: center; font-size: 11px; color: var(--text-sub); margin-top: 10px; letter-spacing: 0.5px; width: 100%; flex-shrink: 0; }
 </style>
 </head>
 <body>
 
 <?php if (!isset($_SESSION['cashier_account'])): ?>
-<!-- FORM AKUN (4 PILIHAN) -->
+<!-- TOMBOL MENU PILIHAN AKUN KASIR (Ganti dari Dropdown) -->
 <div class="login-wrap">
   <div class="login-card">
     <h2>Pilih Akun Kasir</h2>
-    <form method="post">
-      <input type="hidden" name="action" value="login">
-      <select name="account_name" required>
-        <option value="Induk Shift 1">Induk Shift 1</option>
-        <option value="Anak Shift 1">Anak Shift 1</option>
-        <option value="Induk Shift 2">Induk Shift 2</option>
-        <option value="Anak Shift 2">Anak Shift 2</option>
-      </select>
-      <button type="submit" class="btn-checkout" style="margin-top:0;">Masuk POS</button>
-    </form>
+    <div class="account-menu-grid">
+      <form method="post" style="margin:0;">
+        <input type="hidden" name="action" value="login">
+        <input type="hidden" name="account_name" value="Induk Shift 1">
+        <button type="submit" class="account-btn">
+          <span>Induk Shift 1</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </form>
+
+      <form method="post" style="margin:0;">
+        <input type="hidden" name="action" value="login">
+        <input type="hidden" name="account_name" value="Anak Shift 1">
+        <button type="submit" class="account-btn">
+          <span>Anak Shift 1</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </form>
+
+      <form method="post" style="margin:0;">
+        <input type="hidden" name="action" value="login">
+        <input type="hidden" name="account_name" value="Induk Shift 2">
+        <button type="submit" class="account-btn">
+          <span>Induk Shift 2</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </form>
+
+      <form method="post" style="margin:0;">
+        <input type="hidden" name="action" value="login">
+        <input type="hidden" name="account_name" value="Anak Shift 2">
+        <button type="submit" class="account-btn">
+          <span>Anak Shift 2</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </form>
+    </div>
   </div>
 </div>
 <footer></footer>
 
 <?php elseif ($isCheckoutPage): ?>
-<!-- HALAMAN PEMBAYARAN KHUSUS (ZERO LAG) -->
+<!-- HALAMAN PEMBAYARAN KHUSUS -->
 <div class="pos-container">
   <div class="pos-header">
     <div>
       <h3>Pembayaran Tunai</h3>
-      <span style="font-size: 11px; color: var(--text-sub);">Kasir: <?= e($_SESSION['cashier_account']) ?></span>
+      <span style="font-size: 10px; color: var(--text-sub);">Kasir: <?= e($_SESSION['cashier_account']) ?></span>
     </div>
     <a href="?" class="logout-btn" title="Kembali ke Kasir">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
     </a>
   </div>
 
   <div class="checkout-page">
-    <div class="summary-row" style="font-size:14px;"><span>Total Tagihan:</span><b style="font-size:16px; color:var(--accent);">Rp <?= rp($grandTotal) ?></b></div>
+    <div class="summary-row" style="font-size:13px;"><span>Total Belanja:</span><b style="font-size:15px; color:var(--accent);">Rp <?= rp($grandTotal) ?></b></div>
     
-    <label style="font-size:13px; color:var(--text-sub); margin-top:8px; display:block;">Jumlah Uang Tunai (Rp):</label>
+    <label style="font-size:12px; color:var(--text-sub); margin-top:6px; display:block;">Jumlah Uang Tunai (Rp):</label>
     <input type="number" id="cashInput" class="cash-input" placeholder="0" autofocus oninput="calculateChange()">
     
     <div class="quick-cash">
@@ -461,13 +500,13 @@ footer { text-align: center; font-size: 12px; color: var(--text-sub); margin-top
     </div>
 
     <div id="changeBox" class="change-box">
-      <div style="font-size:12px;">Kembalian</div>
-      <b id="changeAmount" style="font-size:18px;">Rp 0</b>
+      <div style="font-size:11px;">Kembalian</div>
+      <b id="changeAmount" style="font-size:16px;">Rp 0</b>
     </div>
 
     <div style="margin-top:auto;">
       <button type="button" id="btn-finish-pay" class="btn-checkout" disabled onclick="completeTransaction()">Proses & Selesai Transaksi</button>
-      <a href="?" style="text-align:center; display:block; color:var(--text-sub); text-decoration:none; padding:10px; margin-top:6px; font-size:13px;">Batal / Kembali</a>
+      <a href="?" style="text-align:center; display:block; color:var(--text-sub); text-decoration:none; padding:8px; margin-top:4px; font-size:12px;">Batal atau Kembali</a>
     </div>
   </div>
 </div>
@@ -538,8 +577,8 @@ function formatRupiah(num) { return new Intl.NumberFormat('id-ID').format(num); 
     <h3>Transaksi Selesai</h3>
   </div>
   <div class="checkout-page" style="text-align:center; justify-content:center;">
-    <h3 style="color:var(--success); margin-top:0; font-family:'Source Serif 4', Georgia, serif; font-size:18px;">Transaksi Berhasil!</h3>
-    <div class="receipt-box" style="text-align:left; font-size:12px; max-height:240px;">
+    <h3 style="color:var(--success); margin-top:0; font-family:'Source Serif 4', Georgia, serif; font-size:16px;">Transaksi Berhasil!</h3>
+    <div class="receipt-box" style="text-align:left; font-size:11px; max-height:220px;">
       <b>POS Kasir Manualan</b><br>
       Kasir: <?= e($_SESSION['cashier_account']) ?><br>
       Tgl: <?= date('d/m/Y H:i') ?><br>
@@ -558,7 +597,7 @@ function formatRupiah(num) { return new Intl.NumberFormat('id-ID').format(num); 
       KEMBALI  : Rp <?= rp($changeBack) ?><br>
       <div style="text-align:center; margin-top:6px;">Terima Kasih!</div>
     </div>
-    <a href="?" class="btn-checkout" style="background:var(--accent); margin-top:16px;">Transaksi Baru</a>
+    <a href="?" class="btn-checkout" style="background:var(--accent); margin-top:14px;">Transaksi Baru</a>
   </div>
 </div>
 <footer></footer>
@@ -569,15 +608,15 @@ function formatRupiah(num) { return new Intl.NumberFormat('id-ID').format(num); 
   <div class="pos-header">
     <div>
       <h3>POS Kasir Manualan</h3>
-      <span style="font-size: 11px; color: var(--text-sub);">Akun : <?= e($_SESSION['cashier_account']) ?></span>
+      <span style="font-size: 10px; color: var(--text-sub);">Akun : <?= e($_SESSION['cashier_account']) ?></span>
     </div>
     <div style="display:flex; gap:6px; align-items:center;">
       <button type="button" class="icon-btn" onclick="openSavedModal()" title="Daftar Tersimpan di Akun Ini">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
         <span>Tersimpan</span>
       </button>
       <a href="?logout=1" class="logout-btn" title="Logout / Ganti Akun">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
       </a>
     </div>
   </div>
@@ -588,18 +627,18 @@ function formatRupiah(num) { return new Intl.NumberFormat('id-ID').format(num); 
       <span>Keranjang Belanja (<span id="cart-item-count"><?= $totalCartItems ?></span>)</span>
       <div class="cart-actions-top">
         <button type="button" class="icon-btn danger" onclick="clearCart()" title="Kosongkan Keranjang">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
         </button>
         <button type="button" class="icon-btn" onclick="openSearchPopup()">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <span>Cari Produk</span>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span>Cari</span>
         </button>
       </div>
     </div>
 
     <div class="cart-items" id="cart-items-container">
       <?php if (empty($_SESSION['cart'])): ?>
-        <div class="empty-cart">Keranjang kosong. Klik <b>"Cari Produk"</b> untuk menambah barang.</div>
+        <div class="empty-cart">Keranjang kosong. Ketik PLU atau Barcode atau klik <b>"Cari"</b>.</div>
       <?php else: ?>
         <?php foreach ($_SESSION['cart'] as $item): 
           $subTotalItem = $item['price'] * $item['qty'];
@@ -615,7 +654,7 @@ function formatRupiah(num) { return new Intl.NumberFormat('id-ID').format(num); 
             </div>
             <div class="cart-controls">
               <button type="button" onclick="updateCart('minus', '<?= e($item['plu']) ?>')">-</button>
-              <span style="font-size: 13px; font-weight: bold; width: 18px; text-align: center; color: var(--text-main);"><?= $item['qty'] ?></span>
+              <span style="font-size: 12px; font-weight: bold; width: 16px; text-align: center; color: var(--text-main);"><?= $item['qty'] ?></span>
               <button type="button" onclick="updateCart('add', '<?= e($item['plu']) ?>')">+</button>
             </div>
           </div>
@@ -624,7 +663,11 @@ function formatRupiah(num) { return new Intl.NumberFormat('id-ID').format(num); 
     </div>
 
     <div class="cart-footer">
-      <div class="summary-row"><span>Subtotal</span><span id="summary-subtotal">Rp <?= rp($grandTotal) ?></span></div>
+      <!-- KOTAK INPUT PLU / BARCODE LANGSUNG DI ATAS TOTAL BAYAR -->
+      <div class="direct-scan-wrap">
+        <input type="text" id="directPluInput" class="direct-scan-input" placeholder="Scan atau Ketik PLU atau Barcode di sini..." autocomplete="off" onkeydown="handleDirectInput(event)" autofocus>
+      </div>
+
       <div class="summary-row total"><span>Total Bayar</span><span id="summary-grandtotal" style="color:var(--accent);">Rp <?= rp($grandTotal) ?></span></div>
       <a href="?checkout=1" id="btn-checkout" class="btn-checkout" <?= empty($_SESSION['cart']) ? 'style="opacity:0.5; pointer-events:none;"' : '' ?>>Bayar Sekarang</a>
     </div>
@@ -639,10 +682,10 @@ function formatRupiah(num) { return new Intl.NumberFormat('id-ID').format(num); 
       <div class="search-input-wrap">
         <input type="search" id="searchInput" placeholder="Ketik PLU, Barcode, Nama Produk..." autocomplete="off" onkeydown="handleSearchKeydown(event)">
         <button type="button" class="scan-btn" onclick="toggleScanner()" title="Scan Barcode">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
         </button>
       </div>
-      <button type="button" style="background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-main);" onclick="closeSearchPopup()">&times;</button>
+      <button type="button" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-main);" onclick="closeSearchPopup()">&times;</button>
     </div>
 
     <div id="scanner-container"><div id="reader" style="width:100%;"></div></div>
@@ -656,17 +699,17 @@ function formatRupiah(num) { return new Intl.NumberFormat('id-ID').format(num); 
 <!-- MODAL DAFTAR ITEM TERSIMPAN DI DATABASE & TOMBOL HAPUS -->
 <div id="savedModal" class="modal-overlay">
   <div class="modal-box">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
       <h3>Item Tersimpan</h3>
-      <button type="button" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-main);" onclick="closeSavedModal()">&times;</button>
+      <button type="button" style="background:none; border:none; font-size:18px; cursor:pointer; color:var(--text-main);" onclick="closeSavedModal()">&times;</button>
     </div>
-    <div style="font-size:12px; color:var(--text-sub); margin-bottom:8px;">Akun : <b id="saved-account-name">-</b></div>
-    <div class="receipt-box" id="saved-items-content" style="max-height:220px;">
+    <div style="font-size:11px; color:var(--text-sub); margin-bottom:6px;">Akun : <b id="saved-account-name">-</b></div>
+    <div class="receipt-box" id="saved-items-content" style="max-height:200px;">
       Memuat data...
     </div>
-    <div style="display:flex; gap:8px; margin-top:12px;">
-      <button type="button" class="btn-checkout" style="background:var(--danger); margin-top:0; font-size:13px; padding:10px;" onclick="clearSavedHistory()">Hapus Item Tersimpan</button>
-      <button type="button" class="btn-checkout" style="background:var(--accent); margin-top:0; font-size:13px; padding:10px;" onclick="closeSavedModal()">Tutup</button>
+    <div style="display:flex; gap:6px; margin-top:10px;">
+      <button type="button" class="btn-checkout" style="background:var(--danger); margin-top:0; font-size:12px; padding:9px;" onclick="clearSavedHistory()">Hapus Item</button>
+      <button type="button" class="btn-checkout" style="background:var(--accent); margin-top:0; font-size:12px; padding:9px;" onclick="closeSavedModal()">Tutup</button>
     </div>
   </div>
 </div>
@@ -678,6 +721,19 @@ let hasMoreItems = true;
 let currentQuery = '';
 let html5QrCode = null;
 let isScannerRunning = false;
+
+// Handle Input Langsung (Scan / Ketik PLU atau Barcode)
+function handleDirectInput(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        let inputElem = document.getElementById('directPluInput');
+        let code = inputElem.value.trim();
+        if (code !== '') {
+            updateCart('add', code);
+            inputElem.value = ''; // Reset input langsung untuk scan berikutnya
+        }
+    }
+}
 
 function openSearchPopup() {
     document.getElementById('searchPopup').style.display = 'flex';
@@ -692,6 +748,7 @@ function openSearchPopup() {
 function closeSearchPopup() {
     document.getElementById('searchPopup').style.display = 'none';
     stopScanner();
+    document.getElementById('directPluInput').focus();
 }
 
 function handleSearchKeydown(event) {
@@ -753,7 +810,7 @@ function loadMoreProducts() {
                       <div class="prod-title">${escapeHtml(item.deskripsi)}</div>
                       <div class="prod-price">
                         Rp ${item.harga_jual}
-                        ${item.harga_norm ? `<span style="text-decoration: line-through; font-size: 11px; color: var(--text-sub); margin-left: 4px;">Rp ${item.harga_norm}</span>` : ''}
+                        ${item.harga_norm ? `<span style="text-decoration: line-through; font-size: 10px; color: var(--text-sub); margin-left: 4px;">Rp ${item.harga_norm}</span>` : ''}
                       </div>
                     </div>
                     <button type="button" class="btn-add-item" onclick="addToCart('${escapeHtml(item.plu)}')">+ Tambah</button>
@@ -791,14 +848,13 @@ function clearCart() {
 
 function updateCartUI(data) {
     document.getElementById('cart-item-count').innerText = data.total_items;
-    document.getElementById('summary-subtotal').innerText = 'Rp ' + data.grand_total;
     document.getElementById('summary-grandtotal').innerText = 'Rp ' + data.grand_total;
 
     let container = document.getElementById('cart-items-container');
     let checkoutBtn = document.getElementById('btn-checkout');
 
     if (Object.keys(data.cart).length === 0) {
-        container.innerHTML = '<div class="empty-cart">Keranjang kosong. Klik <b>"Cari Item"</b> untuk menambah barang.</div>';
+        container.innerHTML = '<div class="empty-cart">Keranjang kosong. Ketik PLU/Barcode atau klik <b>"Cari"</b>.</div>';
         checkoutBtn.style.opacity = '0.5';
         checkoutBtn.style.pointerEvents = 'none';
     } else {
@@ -821,7 +877,7 @@ function updateCartUI(data) {
                 </div>
                 <div class="cart-controls">
                   <button type="button" onclick="updateCart('minus', '${item.plu}')">-</button>
-                  <span style="font-size: 13px; font-weight: bold; width: 18px; text-align: center; color: var(--text-main);">${item.qty}</span>
+                  <span style="font-size: 12px; font-weight: bold; width: 16px; text-align: center; color: var(--text-main);">${item.qty}</span>
                   <button type="button" onclick="updateCart('add', '${item.plu}')">+</button>
                 </div>
               </div>
@@ -829,6 +885,9 @@ function updateCartUI(data) {
         }
         container.innerHTML = html;
     }
+    // Pertahankan fokus ke input scan
+    let directInput = document.getElementById('directPluInput');
+    if(directInput) directInput.focus();
 }
 
 /* MODAL RIWAYAT / DAFTAR ITEM TERSIMPAN DI AKUN */
@@ -885,9 +944,9 @@ function toggleScanner() {
             { facingMode: "environment" },
             { fps: 10, qrbox: { width: 250, height: 150 } },
             qrMessage => {
-                document.getElementById('searchInput').value = qrMessage;
-                performSearch();
-                stopScanner();
+                // Saat scan sukses dari kamera pop-up, masukkan ke keranjang langsung
+                updateCart('add', qrMessage);
+                closeSearchPopup();
             },
             err => {}
         );
