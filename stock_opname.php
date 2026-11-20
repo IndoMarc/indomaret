@@ -1488,13 +1488,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                 <div class="card card-laporan">
                     <div class="action-bar-hasil">
                         <button type="button" id="btnUploadDB" class="btn-upload-db">
-                            <i data-lucide="database" style="width: 14px; height: 14px;"></i> Upload Data
+                            <i data-lucide="database" style="width: 14px; height: 14px;"></i> Upload
                         </button>
                         <button type="button" id="btnSalinHasilAkhir" class="btn-copy-data">
-                            <i data-lucide="copy" style="width: 14px; height: 14px;"></i> Salin Hasil
+                            <i data-lucide="copy" style="width: 14px; height: 14px;"></i> Salin
                         </button>
                         <button type="button" id="btnResetHasilAkhir" class="btn-reset-data">
-                            <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i> Reset Data
+                            <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i> Reset
                         </button>
                     </div>
                     <div class="table-responsive">
