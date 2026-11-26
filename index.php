@@ -109,7 +109,7 @@
 
         h1 {
             font-family: 'Source Serif 4', Georgia, serif;
-            font-size: 22px;
+            font-size: 30px;
             font-weight: 500;
             letter-spacing: -0.4px;
             line-height: 1.25;
@@ -139,7 +139,7 @@
         .menu-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 8px;
+            gap: 10px;
         }
 
         .menu-item {
@@ -148,13 +148,13 @@
             justify-content: center;
             text-align: center;
             position: relative;
-            gap: 8px;
+            gap: 10px;
             text-decoration: none;
             background: var(--item-bg);
             color: var(--text-main);
             padding: 12px 16px;
             border-radius: 12px;
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 500;
             line-height: 1.4;
             border: 1px solid var(--border);
@@ -213,7 +213,7 @@
             right: 0;
             background-color: var(--bg-color);
             text-align: center;
-            font-size: 12px;
+            font-size: 10px;
             color: var(--text-sub);
             padding: 12px;
             border-top: 1px solid var(--border);
@@ -226,7 +226,7 @@
 <body>
 
     <header>
-        <h1>F8YF - GRAND MUTIARA</h1>
+        <h1>- -  INDOMARET  - -</h1>
     </header>
 
     <div class="container">

@@ -1313,7 +1313,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     <div id="accountSelectionBox">
                         <div class="account-card-header">
                             <h2>Pilih Akun Stock Opname</h2>
-                            <p>Silakan pilih akun untuk melanjutkan proses SO</p>
+                            
                         </div>
                         <div class="account-box">
                             <button type="button" class="btn-account" data-account="Admin">
